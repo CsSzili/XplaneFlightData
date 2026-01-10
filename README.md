@@ -1,6 +1,6 @@
 # Xplane MFD Calculations
 
-This repository contains flight calculation code for data published by the X-Plane [Web API](https://developer.x-plane.com/article/x-plane-web-api/). It demonstrates the **Joint Strike Fighter Air Vehicle C++ Coding Standards** (JSF AV C++). The `compliant/` directory contains code with numerous JSF Standard fixes, while `non-compliant/` contains multiple major standard violation examples.
+This repository contains flight calculation code for data published by the X-Plane [Web API](https://developer.x-plane.com/article/x-plane-web-api/). It demonstrates the [**Joint Strike Fighter Air Vehicle C++ Coding Standards**](https://www.stroustrup.com/JSF-AV-rules.pdf) (JSF AV C++). The `compliant/` directory contains code with numerous JSF Standard fixes, while `non-compliant/` contains multiple major standard violation examples.
 
 <img width="1790" height="1132" alt="mfd_display" src="https://github.com/user-attachments/assets/c577fd40-6d1b-4e2a-a500-d3593338ee63" />
 

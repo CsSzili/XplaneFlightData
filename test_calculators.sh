@@ -4,36 +4,26 @@
 echo "===================================="
 echo "X-Plane Flight Calculator Test Suite"
 echo "===================================="
-
-# Show which version is active
-if [ -f .active_version ]; then
-    VERSION=$(cat .active_version)
-    echo "Testing: $VERSION version"
-else
-    echo "Testing: Unknown version (run 'make compliant' or 'make non-compliant')"
-fi
-
-echo "===================================="
 echo ""
 
 echo "1. Turn Performance Calculator"
 echo "   Input: 250 kts TAS, 25° bank, 90° turn"
-./turn_calculator 250 25 90
+./$O_DIR/turn_calculator 250 25 90 | ./testcase.exe turn_calculator.txt
 echo ""
 
 echo "2. VNAV Calculator"
 echo "   Input: FL350 to 10000 ft, 100nm away, 450 kts GS"
-./vnav_calculator 35000 10000 100 450 -1500
+./build/vnav_calculator 35000 10000 100 450 -1500 | ./testcase.exe vnav_calculator.txt
 echo ""
 
 echo "3. Density Altitude Calculator"
 echo "   Input: 5000 ft PA, 25°C OAT, 150 IAS, 170 TAS"
-./density_altitude_calculator 5000 25 150 170
+./build/density_altitude_calculator 5000 25 150 170 | ./testcase.exe density_altitude_calculator.txt
 echo ""
 
 echo "4. Flight Performance Calculator (comprehensive)"
 echo "   Input: Full flight envelope parameters"
-./flight_calculator 250 245 90 95 220 0.65 35000 35000 -500 75000 5 120 250 0.82
+./build/flight_calculator 250 245 90 95 220 0.65 35000 35000 -500 75000 5 120 250 0.82 | ./testcase.exe flight_calculator.txt
 echo ""
 
 echo "===================================="
