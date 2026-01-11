@@ -380,7 +380,7 @@ int main(int argc,
         std::cerr << "Usage: " << argv[0] << " <tas_kts> <gs_kts> <heading> <track> "
                   << "<ias_kts> <mach> <altitude_ft> <agl_ft> <vs_fpm> "
                   << "<weight_kg> <bank_deg> <vso_kts> <vne_kts> <mmo>\n";
-        return static_cast<int32_t>(xplane_mfd::calc::Return_code::invalid_argc);
+        return static_cast<int>(xplane_mfd::calc::Return_code::invalid_argc);
     }
 
     double tas_kts;
@@ -409,7 +409,7 @@ int main(int argc,
         !xplane_mfd::calc::parse_double(argv[13], vne_kts) || !xplane_mfd::calc::parse_double(argv[14], mmo))
     {
         std::cerr << "Error: Invalid numeric argument\n";
-        return static_cast<int32_t>(xplane_mfd::calc::Return_code::parse_failed);
+        return static_cast<int>(xplane_mfd::calc::Return_code::parse_failed);
     }
     xplane_mfd::calc::SensorHistoryBuffer ias_buffer;
 
@@ -428,5 +428,5 @@ int main(int argc,
     xplane_mfd::calc::GlideData glide   = xplane_mfd::calc::calculate_glide_reach(agl_ft, tas_kts, wind.headwind);
     xplane_mfd::calc::print_json_results(wind, envelope, energy, glide);
 
-    return static_cast<int32_t>(xplane_mfd::calc::Return_code::success);
+    return static_cast<int>(xplane_mfd::calc::Return_code::success);
 }
