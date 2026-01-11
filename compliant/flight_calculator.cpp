@@ -2,21 +2,10 @@
 // JSF AV C++ Coding Standard Compliant Version
 //
 // Performs advanced flight calculations:
-// 1. Real-time wind vector with gust/turbulence analysis
-// 2. Envelope margins (stall/overspeed/buffet)
-// 3. Energy management (specific energy & trend)
-// 4. Glide reach estimation
-//
-// JSF Compliance:
-// - AV Rule 208: No exceptions (throw/catch/try) - uses error codes
-// - AV Rule 209: Fixed-width types (int32_t, double)
-// - AV Rule 206: No dynamic memory allocation (fixed-size arrays)
-// - AV Rule 119: No recursion (binomial_coefficient is iterative)
-// - AV Rule 52: Constants in lowercase
-// - AV Rule 113: Single exit point
-// - AV Rule 126: C++ style comments only (//)
-//
-// Compile: g++ -std=c++20 -O3 -o flight_calculator flight_calculator.cpp
+// - Real-time wind vector with gust/turbulence analysis
+// - Envelope margins (stall/overspeed/buffet)
+// - Energy management (specific energy & trend)
+// - Glide reach estimation
 
 #include <algorithm>
 #include <array>
@@ -439,6 +428,8 @@ int main(int   argc,
 
         bool   parse_success = true;
         // TODO: EW!
+        //? Why are there no custom messages for the arguments like in density altitude calculator?
+        //? No simulated error?
         if (!parse_double(argv[1], tas_kts))
         {
             parse_success = false;
