@@ -141,9 +141,9 @@ void print_usage(const char* program_name)
 int main(int   argc,
          char* argv[])
 {
-    using namespace xplane_mfd::calc;
+    using namespace xplane_mfd::calc;  //! using namespace
 
-    int32_t return_code = error_success;  // Single exit point variable
+    int32_t return_code = error_success;  //! Single exit point variable
 
     // JSF-compliant: No exceptions, use error codes
     if (argc != 5)

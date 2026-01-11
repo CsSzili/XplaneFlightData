@@ -8,6 +8,7 @@
 // - Air density ratio (sigma)
 // - Performance degradation percentage
 
+#include "xplane_mfd_calc.h"
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
@@ -17,14 +18,6 @@
 
 namespace xplane_mfd::calc
 {
-
-enum class Return_code : int32_t
-{
-    success      = 0,
-    invalid_args = 1,
-    parse_failed = 2,
-    simulated    = 3,
-};
 
 const double sea_level_temp_c           = 15.0;
 const double temp_lapse_rate            = 0.0019812;  // Celsius per foot (standard lapse rate)
@@ -198,7 +191,7 @@ int main(int argc,
     if (argc < 5 || 6 < argc)
     {
         print_usage(argv[0]);
-        return static_cast<int>(xplane_mfd::calc::Return_code::invalid_args);
+        return static_cast<int>(xplane_mfd::calc::Return_code::invalid_argc);
     }
 
     double pressure_altitude_ft;
@@ -256,4 +249,5 @@ int main(int argc,
     print_json(xplane_mfd::calc::calculate_density_altitude_data(pressure_altitude_ft, oat_celsius, ias_kts, tas_kts));
 
     return static_cast<int>(xplane_mfd::calc::Return_code::success);
+
 }

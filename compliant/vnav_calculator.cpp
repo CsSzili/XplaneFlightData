@@ -20,6 +20,7 @@
 //
 // Usage: ./vnav_calculator <current_alt_ft> <target_alt_ft> <distance_nm> <groundspeed_kts> <current_vs_fpm>
 
+#include "xplane_mfd_calc.h"
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
@@ -29,11 +30,6 @@
 
 namespace xplane_mfd::calc
 {
-
-// Error codes (AV Rule 52: lowercase)
-const int32_t error_success        = 0;
-const int32_t error_invalid_args   = 1;
-const int32_t error_parse_failed   = 2;
 
 // Mathematical constants (AV Rule 52: lowercase)
 const double  deg_to_rad           = std::numbers::pi / 180.0;
@@ -173,14 +169,14 @@ void print_usage(const char* program_name)
 int main(int   argc,
          char* argv[])
 {
-    using namespace xplane_mfd::calc;
+    using namespace xplane_mfd::calc;  //! using namespace
 
-    int32_t return_code = error_success;  // Single exit point variable
+    int32_t return_code = static_cast<int32_t>(Return_code::success);  //! Single exit point variable
 
     if (argc != 6)
     {
         print_usage(argv[0]);
-        return_code = error_invalid_args;
+        return_code = static_cast<int32_t>(Return_code::invalid_argc);
     }
     else
     {
@@ -195,27 +191,27 @@ int main(int   argc,
         if (!parse_double(argv[1], current_alt_ft))
         {
             std::cerr << "Error: Invalid current altitude\n";
-            return_code = error_parse_failed;
+            return_code = static_cast<int32_t>(Return_code::parse_failed);
         }
         else if (!parse_double(argv[2], target_alt_ft))
         {
             std::cerr << "Error: Invalid target altitude\n";
-            return_code = error_parse_failed;
+            return_code = static_cast<int32_t>(Return_code::parse_failed);
         }
         else if (!parse_double(argv[3], distance_nm))
         {
             std::cerr << "Error: Invalid distance\n";
-            return_code = error_parse_failed;
+            return_code = static_cast<int32_t>(Return_code::parse_failed);
         }
         else if (!parse_double(argv[4], groundspeed_kts))
         {
             std::cerr << "Error: Invalid groundspeed\n";
-            return_code = error_parse_failed;
+            return_code = static_cast<int32_t>(Return_code::parse_failed);
         }
         else if (!parse_double(argv[5], current_vs_fpm))
         {
             std::cerr << "Error: Invalid vertical speed\n";
-            return_code = error_parse_failed;
+            return_code = static_cast<int32_t>(Return_code::parse_failed);
         }
         else
         {
@@ -224,7 +220,7 @@ int main(int   argc,
 
             // Output JSON
             print_json(vnav);
-            return_code = error_success;
+            return_code = static_cast<int32_t>(Return_code::success);
         }
     }
 

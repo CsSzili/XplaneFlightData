@@ -7,6 +7,7 @@
 // - Energy management (specific energy & trend)
 // - Glide reach estimation
 
+#include "xplane_mfd_calc.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -19,42 +20,37 @@
 namespace xplane_mfd::calc
 {
 
-// Error codes (AV Rule 52: lowercase)
-const int32_t error_success          = 0;
-const int32_t error_invalid_args     = 1;
-const int32_t error_parse_failed     = 2;
-
 // Mathematical constants (AV Rule 52: lowercase)
-const double  deg_to_rad             = std::numbers::pi / 180.0;
-const double  rad_to_deg             = 180.0 / std::numbers::pi;
-const double  gravity                = 9.80665;  // m/s²
-const double  kts_to_ms              = 0.514444;
-const double  ft_to_m                = 0.3048;
-const double  m_to_ft                = 3.28084;
-const double  nm_to_ft               = 6076.12;
+const double deg_to_rad = std::numbers::pi / 180.0;
+const double rad_to_deg = 180.0 / std::numbers::pi;
+const double gravity    = 9.80665;  // m/pow(s, 2)
+const double kts_to_ms  = 0.514444;
+const double ft_to_m    = 0.3048;
+const double m_to_ft    = 3.28084;
+const double nm_to_ft   = 6076.12;
 
 // Fixed-size array limit (AV Rule 206: no dynamic allocation)
-const int32_t max_ias_history        = 20;
+const int32_t max_ias_history = 20;
 
 // Calculation constants (AV Rule 151: no magic numbers)
-const double  angle_wrap             = 360.0;
-const double  half_circle            = 180.0;
-const double  sqrt_two               = 1.414;
-const double  typical_glide_ratio    = 12.0;
-const double  best_glide_multiplier  = 1.3;
-const double  typical_vs             = 60.0;
-const double  energy_rate_divisor    = 101.27;
-const double  energy_trend_threshold = 50.0;
-const int32_t energy_stable          = 0;
-const int32_t energy_increasing      = 1;
-const int32_t energy_decreasing      = -1;
-const double  two_point_zero         = 2.0;
-const double  hundred_percent        = 100.0;
-const double  min_history_for_stats  = 2.0;
+const double angle_wrap             = 360.0;
+const double half_circle            = 180.0;
+const double sqrt_two               = 1.414;
+const double typical_glide_ratio    = 12.0;
+const double best_glide_multiplier  = 1.3;
+const double typical_vs             = 60.0;
+const double energy_rate_divisor    = 101.27;
+const double energy_trend_threshold = 50.0;
+const int32_t energy_stable         = 0;
+const int32_t energy_increasing     = 1;
+const int32_t energy_decreasing     = -1;
+const double two_point_zero         = 2.0;
+const double hundred_percent        = 100.0;
+const double min_history_for_stats  = 2.0;
 
 // JSF-compliant parse function
 bool parse_double(const char* str,
-                  double&     result)
+                  double& result)
 {
     char* end = nullptr;
     result    = strtod(str, &end);
@@ -142,18 +138,18 @@ struct WindData
 };
 
 // AV Rule 58: Long parameter lists formatted one per line
-WindData calculate_wind_vector(double        tas_kts,
-                               double        gs_kts,
-                               double        heading_deg,
-                               double        track_deg,
+WindData calculate_wind_vector(double tas_kts,
+                               double gs_kts,
+                               double heading_deg,
+                               double track_deg,
                                const double* ias_history,
-                               int32_t       history_size)
+                               int32_t history_size)
 {
     WindData result;
 
     // Convert to vectors
-    double   heading_rad = heading_deg * deg_to_rad;
-    double   track_rad   = track_deg * deg_to_rad;
+    double heading_rad = heading_deg * deg_to_rad;
+    double track_rad   = track_deg * deg_to_rad;
 
     // Air vector (TAS in heading direction)
     Vector2D air_vec(tas_kts * sin(heading_rad), tas_kts * cos(heading_rad));
@@ -162,16 +158,16 @@ WindData calculate_wind_vector(double        tas_kts,
     Vector2D ground_vec(gs_kts * sin(track_rad), gs_kts * cos(track_rad));
 
     // Wind = Ground - Air
-    Vector2D wind_vec     = ground_vec - air_vec;
+    Vector2D wind_vec = ground_vec - air_vec;
 
-    result.speed_kts      = wind_vec.magnitude();
+    result.speed_kts = wind_vec.magnitude();
 
     // Wind direction (where FROM)
     double wind_dir_rad   = atan2(wind_vec.x, wind_vec.y);
     result.direction_from = normalize_angle(wind_dir_rad * rad_to_deg);
 
     // Components relative to track
-    double wind_from_rel  = normalize_angle(result.direction_from - track_deg);
+    double wind_from_rel = normalize_angle(result.direction_from - track_deg);
     if (wind_from_rel > half_circle)
         wind_from_rel -= angle_wrap;
 
@@ -224,24 +220,24 @@ EnvelopeMargins calculate_envelope(double bank_deg,
     EnvelopeMargins result;
 
     // Load factor
-    double          bank_rad = bank_deg * deg_to_rad;
-    result.load_factor       = 1.0 / cos(bank_rad);
+    double bank_rad    = bank_deg * deg_to_rad;
+    result.load_factor = 1.0 / cos(bank_rad);
 
     // Stall speed increases with load factor
-    double vs_actual         = vso_kts * sqrt(result.load_factor);
-    result.stall_margin_pct  = ((ias_kts - vs_actual) / vs_actual) * hundred_percent;
+    double vs_actual        = vso_kts * sqrt(result.load_factor);
+    result.stall_margin_pct = ((ias_kts - vs_actual) / vs_actual) * hundred_percent;
 
     // VMO margin
-    result.vmo_margin_pct    = ((vne_kts - ias_kts) / vne_kts) * hundred_percent;
+    result.vmo_margin_pct = ((vne_kts - ias_kts) / vne_kts) * hundred_percent;
 
     // MMO margin
-    result.mmo_margin_pct    = ((mmo - mach) / mmo) * hundred_percent;
+    result.mmo_margin_pct = ((mmo - mach) / mmo) * hundred_percent;
 
     // Minimum margin
-    result.min_margin_pct    = std::min({result.stall_margin_pct, result.vmo_margin_pct, result.mmo_margin_pct});
+    result.min_margin_pct = std::min({result.stall_margin_pct, result.vmo_margin_pct, result.mmo_margin_pct});
 
     // Corner speed estimate
-    result.corner_speed_kts  = vs_actual * sqrt_two;  // Vc ≈ Vs * √2
+    result.corner_speed_kts = vs_actual * sqrt_two;  // Vc ≈ Vs * √2
 
     return result;
 }
@@ -249,8 +245,8 @@ EnvelopeMargins calculate_envelope(double bank_deg,
 // 3. Energy management
 struct EnergyData
 {
-    double  specific_energy_ft;
-    double  energy_rate_kts;
+    double specific_energy_ft;
+    double energy_rate_kts;
     int32_t trend;  // 1=increasing, 0=stable, -1=decreasing
 };
 
@@ -261,14 +257,14 @@ EnergyData calculate_energy(double tas_kts,
     EnergyData result;
 
     // Specific energy: Es = h + V²/(2g)
-    double     v_ms             = tas_kts * kts_to_ms;
-    double     h_m              = altitude_ft * ft_to_m;
-    double     kinetic_energy_m = (v_ms * v_ms) / (two_point_zero * gravity);
-    double     total_energy_m   = h_m + kinetic_energy_m;
-    result.specific_energy_ft   = total_energy_m * m_to_ft;
+    double v_ms               = tas_kts * kts_to_ms;
+    double h_m                = altitude_ft * ft_to_m;
+    double kinetic_energy_m   = (v_ms * v_ms) / (two_point_zero * gravity);
+    double total_energy_m     = h_m + kinetic_energy_m;
+    result.specific_energy_ft = total_energy_m * m_to_ft;
 
     // Energy rate (convert VS to equivalent airspeed change)
-    result.energy_rate_kts      = vs_fpm / energy_rate_divisor;  // Simplified
+    result.energy_rate_kts = vs_fpm / energy_rate_divisor;  // Simplified
 
     // Trend
     if (vs_fpm > energy_trend_threshold)
@@ -303,27 +299,27 @@ GlideData calculate_glide_reach(double agl_ft,
     GlideData result;
 
     // Assume typical L/D ratio of 12:1 for general aviation
-    result.glide_ratio            = typical_glide_ratio;
+    result.glide_ratio = typical_glide_ratio;
 
     // Still air range
-    double range_ft               = agl_ft * result.glide_ratio;
-    result.still_air_range_nm     = range_ft / nm_to_ft;
+    double range_ft           = agl_ft * result.glide_ratio;
+    result.still_air_range_nm = range_ft / nm_to_ft;
 
     // Wind adjustment (simplified)
     double wind_effect            = headwind_kts / tas_kts;
     result.wind_adjusted_range_nm = result.still_air_range_nm * (1.0 - wind_effect);
 
     // Best glide speed (simplified estimate)
-    result.best_glide_speed_kts   = best_glide_multiplier * typical_vs;  // 1.3 * typical Vs
+    result.best_glide_speed_kts = best_glide_multiplier * typical_vs;  // 1.3 * typical Vs
 
     return result;
 }
 
 // Output comprehensive JSON results
-void print_json_results(const WindData&        wind,
+void print_json_results(const WindData& wind,
                         const EnvelopeMargins& envelope,
-                        const EnergyData&      energy,
-                        const GlideData&       glide)
+                        const EnergyData& energy,
+                        const GlideData& glide)
 {
     std::cout << std::fixed << std::setprecision(2);
     std::cout << "{\n";
@@ -379,15 +375,15 @@ struct SensorHistoryBuffer
     //  The pre-allocated, fixed-size buffer.
     std::array<double, max_ias_history> data;
 
-    int32_t                             head_index   = 0;
-    int32_t                             current_size = 0;
+    int32_t head_index   = 0;
+    int32_t current_size = 0;
 
     void add_reading(double new_ias)
     {
         data[head_index] = new_ias;
 
         // Move the head to the next position, wrapping around if necessary.
-        head_index       = (head_index + 1) % max_ias_history;
+        head_index = (head_index + 1) % max_ias_history;
 
         // The buffer size grows until it's full.
         if (current_size < max_ias_history)
@@ -404,19 +400,19 @@ struct SensorHistoryBuffer
 }  // namespace xplane_mfd::calc
 
 // AV Rule 113: Single exit point
-int main(int   argc,
+int main(int argc,
          char* argv[])
 {
-    using namespace xplane_mfd::calc;
+    using namespace xplane_mfd::calc;  //! using namespace
 
-    int32_t return_code = error_success;  // Single exit point variable
+    int32_t return_code = static_cast<int32_t>(Return_code::success);  //! Single exit point variable
 
     if (argc != 15)
     {
         std::cerr << "Usage: " << argv[0] << " <tas_kts> <gs_kts> <heading> <track> "
                   << "<ias_kts> <mach> <altitude_ft> <agl_ft> <vs_fpm> "
                   << "<weight_kg> <bank_deg> <vso_kts> <vne_kts> <mmo>\n";
-        return_code = error_invalid_args;
+        return_code = static_cast<int32_t>(Return_code::invalid_argc);
     }
     else
     {
@@ -426,7 +422,7 @@ int main(int   argc,
         double tas_kts, gs_kts, heading, track, ias_kts, mach, altitude_ft, agl_ft;
         double vs_fpm, weight_kg, bank_deg, vso_kts, vne_kts, mmo;
 
-        bool   parse_success = true;
+        bool parse_success = true;
         // TODO: EW!
         //? Why are there no custom messages for the arguments like in density altitude calculator?
         //? No simulated error?
@@ -490,7 +486,7 @@ int main(int   argc,
         if (!parse_success)
         {
             std::cerr << "Error: Invalid numeric argument\n";
-            return_code = error_parse_failed;
+            return_code = static_cast<int32_t>(Return_code::parse_failed);
         }
         else
         {
@@ -512,15 +508,15 @@ int main(int   argc,
             EnvelopeMargins envelope = calculate_envelope(bank_deg, ias_kts, mach, vso_kts, vne_kts, mmo);
 
             // 3. Calculate energy state
-            EnergyData      energy   = calculate_energy(tas_kts, altitude_ft, vs_fpm);
+            EnergyData energy = calculate_energy(tas_kts, altitude_ft, vs_fpm);
 
             // 4. Calculate glide reach
-            GlideData       glide    = calculate_glide_reach(agl_ft, tas_kts, wind.headwind);
+            GlideData glide = calculate_glide_reach(agl_ft, tas_kts, wind.headwind);
 
             // Output JSON
             print_json_results(wind, envelope, energy, glide);
 
-            return_code = error_success;
+            return_code = static_cast<int32_t>(Return_code::success);
         }
     }
 

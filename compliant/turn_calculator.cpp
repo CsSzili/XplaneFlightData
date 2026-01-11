@@ -21,6 +21,7 @@
 //
 // Usage: ./turn_calculator <tas_kts> <bank_deg> <course_change_deg>
 
+#include "xplane_mfd_calc.h"
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
@@ -30,12 +31,6 @@
 
 namespace xplane_mfd::calc
 {
-
-// Error codes (AV Rule 52: lowercase constants)
-const int32_t error_success           = 0;
-const int32_t error_invalid_args      = 1;
-const int32_t error_parse_failed      = 2;
-const int32_t error_invalid_value     = 3;
 
 // Mathematical constants (AV Rule 52: lowercase)
 const double  deg_to_rad              = std::numbers::pi / 180.0;
@@ -172,15 +167,15 @@ void print_usage(const char* program_name)
 int main(int   argc,
          char* argv[])
 {
-    using namespace xplane_mfd::calc;
+    using namespace xplane_mfd::calc;  //! using namespace
 
-    int32_t return_code = error_success;  // Single exit point variable
+    int32_t return_code = static_cast<int32_t>(Return_code::success);  //! Single exit point variable
 
     // Validate argument count
     if (argc != 4)
     {
         print_usage(argv[0]);
-        return_code = error_invalid_args;
+        return_code = static_cast<int32_t>(Return_code::invalid_argc);
     }
     else
     {
@@ -192,34 +187,34 @@ int main(int   argc,
         if (!parse_double(argv[1], tas_kts))
         {
             std::cerr << "Error: Invalid TAS\n";
-            return_code = error_parse_failed;
+            return_code = static_cast<int32_t>(Return_code::parse_failed);
         }
         else if (!parse_double(argv[2], bank_deg))
         {
             std::cerr << "Error: Invalid bank angle\n";
-            return_code = error_parse_failed;
+            return_code = static_cast<int32_t>(Return_code::parse_failed);
         }
         else if (!parse_double(argv[3], course_change_deg))
         {
             std::cerr << "Error: Invalid course change\n";
-            return_code = error_parse_failed;
+            return_code = static_cast<int32_t>(Return_code::parse_failed);
         }
         else if (tas_kts <= 0.0)
         {
             std::cerr << "Error: TAS must be positive\n";
-            return_code = error_invalid_value;
+            return_code = static_cast<int32_t>(Return_code::invalid_value);
         }
         else if (bank_deg < 0.0 || bank_deg > 90.0)
         {
             std::cerr << "Error: Bank angle must be between 0 and 90 degrees\n";
-            return_code = error_invalid_value;
+            return_code = static_cast<int32_t>(Return_code::invalid_value);
         }
         else
         {
             // All inputs valid - calculate and output
             TurnData turn = calculate_turn_performance(tas_kts, bank_deg, course_change_deg);
             print_json(turn);
-            return_code = error_success;
+            return_code = static_cast<int32_t>(Return_code::success);
         }
     }
 
