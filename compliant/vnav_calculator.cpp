@@ -32,23 +32,23 @@ namespace xplane_mfd::calc
 {
 
 // Mathematical constants (AV Rule 52: lowercase)
-const double  deg_to_rad           = std::numbers::pi / 180.0;
-const double  rad_to_deg           = 180.0 / std::numbers::pi;
-const double  nm_to_ft             = 6076.12;
-const double  three_deg_rad        = 3.0 * deg_to_rad;
+const double deg_to_rad    = std::numbers::pi / 180.0;
+const double rad_to_deg    = 180.0 / std::numbers::pi;
+const double nm_to_ft      = 6076.12;
+const double three_deg_rad = 3.0 * deg_to_rad;
 
 // Calculation constants (AV Rule 151: no magic numbers)
-const double  vs_conversion_factor = 101.27;  // Converts GS*tan(γ) to VS in fpm
-const double  min_distance_nm      = 0.01;
-const double  min_groundspeed_kts  = 1.0;
-const double  min_vs_for_time_calc = 1.0;
-const double  infinite_time        = 999.9;
-const double  zero_distance        = 0.0;
-const double  thousand_feet        = 1000.0;
+const double vs_conversion_factor = 101.27;  // Converts GS*tan(γ) to VS in fpm
+const double min_distance_nm      = 0.01;
+const double min_groundspeed_kts  = 1.0;
+const double min_vs_for_time_calc = 1.0;
+const double infinite_time        = 999.9;
+const double zero_distance        = 0.0;
+const double thousand_feet        = 1000.0;
 
 // JSF-compliant parse function
 bool parse_double(const char* str,
-                  double&     result)
+                  double& result)
 {
     char* end = nullptr;
     result    = strtod(str, &end);
@@ -64,7 +64,7 @@ struct VNAVData
     double time_to_constraint_min;  // Time to reach altitude at current VS
     double distance_per_1000ft;     // Distance traveled per 1000 ft altitude change
     double vs_for_3deg;             // Vertical speed required for 3° path
-    bool   is_descent;              // True if descending, false if climbing
+    bool is_descent;                // True if descending, false if climbing
 };
 
 // Calculate VNAV parameters
@@ -77,9 +77,9 @@ VNAVData calculate_vnav(double current_alt_ft,
     VNAVData result;
 
     // Calculate altitude change (positive = climb, negative = descend)
-    double   altitude_change_ft = target_alt_ft - current_alt_ft;
-    result.altitude_to_lose_ft  = -altitude_change_ft;  // Legacy field name
-    result.is_descent           = altitude_change_ft < zero_distance;
+    double altitude_change_ft  = target_alt_ft - current_alt_ft;
+    result.altitude_to_lose_ft = -altitude_change_ft;  // Legacy field name
+    result.is_descent          = altitude_change_ft < zero_distance;
 
     // Avoid division by zero
     if (distance_nm < min_distance_nm)
@@ -94,16 +94,16 @@ VNAVData calculate_vnav(double current_alt_ft,
 
     // Required vertical speed to meet constraint
     // VS = 101.27 * GS * tan(γ)
-    result.required_vs_fpm       = vs_conversion_factor * groundspeed_kts * tan(gamma_rad);
+    result.required_vs_fpm = vs_conversion_factor * groundspeed_kts * tan(gamma_rad);
 
     // Calculate TOD for standard 3° descent path
     // D = h / (6076 * tan(3°)) or simplified: h / 319
-    double abs_alt_change        = fabs(altitude_change_ft);
-    result.tod_distance_nm       = abs_alt_change / (nm_to_ft * tan(three_deg_rad));
+    double abs_alt_change  = fabs(altitude_change_ft);
+    result.tod_distance_nm = abs_alt_change / (nm_to_ft * tan(three_deg_rad));
 
     // Vertical speed for 3° descent: VS ≈ 5 * GS (rule of thumb)
     // More precisely: VS = 101.27 * GS * tan(3°) ≈ 5.3 * GS
-    result.vs_for_3deg           = vs_conversion_factor * groundspeed_kts * tan(three_deg_rad);
+    result.vs_for_3deg = vs_conversion_factor * groundspeed_kts * tan(three_deg_rad);
     if (!result.is_descent)
     {
         result.vs_for_3deg = -result.vs_for_3deg;  // Make positive for climb
@@ -166,17 +166,15 @@ void print_usage(const char* program_name)
 }
 
 // AV Rule 113: Single exit point
-int main(int   argc,
+int main(int argc,
          char* argv[])
 {
-    using namespace xplane_mfd::calc;  //! using namespace
-
-    int32_t return_code = static_cast<int32_t>(Return_code::success);  //! Single exit point variable
+    int32_t return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::success);  //! Single exit point variable
 
     if (argc != 6)
     {
         print_usage(argv[0]);
-        return_code = static_cast<int32_t>(Return_code::invalid_argc);
+        return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::invalid_argc);
     }
     else
     {
@@ -188,39 +186,40 @@ int main(int   argc,
         double current_vs_fpm;
 
         // TODO: EW!
-        if (!parse_double(argv[1], current_alt_ft))
+        if (!xplane_mfd::calc::parse_double(argv[1], current_alt_ft))
         {
             std::cerr << "Error: Invalid current altitude\n";
-            return_code = static_cast<int32_t>(Return_code::parse_failed);
+            return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::parse_failed);
         }
-        else if (!parse_double(argv[2], target_alt_ft))
+        else if (!xplane_mfd::calc::parse_double(argv[2], target_alt_ft))
         {
             std::cerr << "Error: Invalid target altitude\n";
-            return_code = static_cast<int32_t>(Return_code::parse_failed);
+            return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::parse_failed);
         }
-        else if (!parse_double(argv[3], distance_nm))
+        else if (!xplane_mfd::calc::parse_double(argv[3], distance_nm))
         {
             std::cerr << "Error: Invalid distance\n";
-            return_code = static_cast<int32_t>(Return_code::parse_failed);
+            return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::parse_failed);
         }
-        else if (!parse_double(argv[4], groundspeed_kts))
+        else if (!xplane_mfd::calc::parse_double(argv[4], groundspeed_kts))
         {
             std::cerr << "Error: Invalid groundspeed\n";
-            return_code = static_cast<int32_t>(Return_code::parse_failed);
+            return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::parse_failed);
         }
-        else if (!parse_double(argv[5], current_vs_fpm))
+        else if (!xplane_mfd::calc::parse_double(argv[5], current_vs_fpm))
         {
             std::cerr << "Error: Invalid vertical speed\n";
-            return_code = static_cast<int32_t>(Return_code::parse_failed);
+            return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::parse_failed);
         }
         else
         {
             // Calculate VNAV data
-            VNAVData vnav = calculate_vnav(current_alt_ft, target_alt_ft, distance_nm, groundspeed_kts, current_vs_fpm);
+            xplane_mfd::calc::VNAVData vnav = xplane_mfd::calc::calculate_vnav(
+                current_alt_ft, target_alt_ft, distance_nm, groundspeed_kts, current_vs_fpm);
 
             // Output JSON
-            print_json(vnav);
-            return_code = static_cast<int32_t>(Return_code::success);
+            xplane_mfd::calc::print_json(vnav);
+            return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::success);
         }
     }
 

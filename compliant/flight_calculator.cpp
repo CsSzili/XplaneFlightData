@@ -403,16 +403,14 @@ struct SensorHistoryBuffer
 int main(int argc,
          char* argv[])
 {
-    using namespace xplane_mfd::calc;  //! using namespace
-
-    int32_t return_code = static_cast<int32_t>(Return_code::success);  //! Single exit point variable
+    int32_t return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::success);  //! Single exit point variable
 
     if (argc != 15)
     {
         std::cerr << "Usage: " << argv[0] << " <tas_kts> <gs_kts> <heading> <track> "
                   << "<ias_kts> <mach> <altitude_ft> <agl_ft> <vs_fpm> "
                   << "<weight_kg> <bank_deg> <vso_kts> <vne_kts> <mmo>\n";
-        return_code = static_cast<int32_t>(Return_code::invalid_argc);
+        return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::invalid_argc);
     }
     else
     {
@@ -426,59 +424,59 @@ int main(int argc,
         // TODO: EW!
         //? Why are there no custom messages for the arguments like in density altitude calculator?
         //? No simulated error?
-        if (!parse_double(argv[1], tas_kts))
+        if (!xplane_mfd::calc::parse_double(argv[1], tas_kts))
         {
             parse_success = false;
         }
-        else if (!parse_double(argv[2], gs_kts))
+        else if (!xplane_mfd::calc::parse_double(argv[2], gs_kts))
         {
             parse_success = false;
         }
-        else if (!parse_double(argv[3], heading))
+        else if (!xplane_mfd::calc::parse_double(argv[3], heading))
         {
             parse_success = false;
         }
-        else if (!parse_double(argv[4], track))
+        else if (!xplane_mfd::calc::parse_double(argv[4], track))
         {
             parse_success = false;
         }
-        else if (!parse_double(argv[5], ias_kts))
+        else if (!xplane_mfd::calc::parse_double(argv[5], ias_kts))
         {
             parse_success = false;
         }
-        else if (!parse_double(argv[6], mach))
+        else if (!xplane_mfd::calc::parse_double(argv[6], mach))
         {
             parse_success = false;
         }
-        else if (!parse_double(argv[7], altitude_ft))
+        else if (!xplane_mfd::calc::parse_double(argv[7], altitude_ft))
         {
             parse_success = false;
         }
-        else if (!parse_double(argv[8], agl_ft))
+        else if (!xplane_mfd::calc::parse_double(argv[8], agl_ft))
         {
             parse_success = false;
         }
-        else if (!parse_double(argv[9], vs_fpm))
+        else if (!xplane_mfd::calc::parse_double(argv[9], vs_fpm))
         {
             parse_success = false;
         }
-        else if (!parse_double(argv[10], weight_kg))
+        else if (!xplane_mfd::calc::parse_double(argv[10], weight_kg))
         {
             parse_success = false;
         }
-        else if (!parse_double(argv[11], bank_deg))
+        else if (!xplane_mfd::calc::parse_double(argv[11], bank_deg))
         {
             parse_success = false;
         }
-        else if (!parse_double(argv[12], vso_kts))
+        else if (!xplane_mfd::calc::parse_double(argv[12], vso_kts))
         {
             parse_success = false;
         }
-        else if (!parse_double(argv[13], vne_kts))
+        else if (!xplane_mfd::calc::parse_double(argv[13], vne_kts))
         {
             parse_success = false;
         }
-        else if (!parse_double(argv[14], mmo))
+        else if (!xplane_mfd::calc::parse_double(argv[14], mmo))
         {
             parse_success = false;
         }
@@ -486,13 +484,13 @@ int main(int argc,
         if (!parse_success)
         {
             std::cerr << "Error: Invalid numeric argument\n";
-            return_code = static_cast<int32_t>(Return_code::parse_failed);
+            return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::parse_failed);
         }
         else
         {
             // 1. Pre-allocate the buffer at initialization (on the stack).
             // This happens ONCE. No memory is allocated inside any loops.
-            SensorHistoryBuffer ias_buffer;
+            xplane_mfd::calc::SensorHistoryBuffer ias_buffer;
 
             for (int32_t i = 0; i < 30; ++i)
             {
@@ -501,22 +499,23 @@ int main(int argc,
                 ias_buffer.add_reading(new_reading);
             }
 
-            WindData wind = calculate_wind_vector(
+            xplane_mfd::calc::WindData wind = xplane_mfd::calc::calculate_wind_vector(
                 tas_kts, gs_kts, heading, track, ias_buffer.get_data_ptr(), ias_buffer.get_size());
 
             // 2. Calculate envelope margins
-            EnvelopeMargins envelope = calculate_envelope(bank_deg, ias_kts, mach, vso_kts, vne_kts, mmo);
+            xplane_mfd::calc::EnvelopeMargins envelope =
+                xplane_mfd::calc::calculate_envelope(bank_deg, ias_kts, mach, vso_kts, vne_kts, mmo);
 
             // 3. Calculate energy state
-            EnergyData energy = calculate_energy(tas_kts, altitude_ft, vs_fpm);
+            xplane_mfd::calc::EnergyData energy = xplane_mfd::calc::calculate_energy(tas_kts, altitude_ft, vs_fpm);
 
             // 4. Calculate glide reach
-            GlideData glide = calculate_glide_reach(agl_ft, tas_kts, wind.headwind);
+            xplane_mfd::calc::GlideData glide = xplane_mfd::calc::calculate_glide_reach(agl_ft, tas_kts, wind.headwind);
 
             // Output JSON
-            print_json_results(wind, envelope, energy, glide);
+            xplane_mfd::calc::print_json_results(wind, envelope, energy, glide);
 
-            return_code = static_cast<int32_t>(Return_code::success);
+            return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::success);
         }
     }
 

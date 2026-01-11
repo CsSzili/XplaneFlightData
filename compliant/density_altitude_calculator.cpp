@@ -249,5 +249,4 @@ int main(int argc,
     print_json(xplane_mfd::calc::calculate_density_altitude_data(pressure_altitude_ft, oat_celsius, ias_kts, tas_kts));
 
     return static_cast<int>(xplane_mfd::calc::Return_code::success);
-
 }
