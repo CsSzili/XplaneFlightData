@@ -33,13 +33,14 @@ CXXFLAGS = $(CXXFLAGS_NON_COMPLIANT)
 SRC_DIR = non-compliant
 O_DIR = $(O_DIR_PARENT)/non-compliant
 endif
-TARGETS := $(addsuffix $(O_EXT), $(TARGETS))
-O_TARGETS := $(addprefix $(O_DIR)/, $(TARGETS))
+TARGETS := $(TARGETS)
+O_TARGETS := $(addsuffix $(O_EXT), $(TARGETS))
+O_DIR_TARGETS := $(addprefix $(O_DIR)/, $(O_TARGETS))
 
 
 .PHONY: all clean test test-% run help
 
-all: $(O_TARGETS)
+all: $(O_DIR_TARGETS)
 
 $(O_DIR):
 	@mkdir -p $(O_DIR)
@@ -54,12 +55,12 @@ clean:
 	rm -f *.pyc
 	@echo "Clean complete!"
 
-test-%: $(O_DIR)/%
+test-%: $(O_DIR)/%$(O_EXT)
 	@echo "===================================="
-	@echo "Running test for $*"
-	@echo "   Input: $($*_ARGS)"
+	@echo "Running test for: \"$*\" with input: \"$($*_ARGS)\""
 	@./$(O_DIR)/$* $($*_ARGS) | ./testcase$(O_EXT) ./tests/$*.txt || (echo "Error in testcase $*" && exit 1)
-	@echo ""
+	@echo "OK"
+	@echo "===================================="
 
 # Test all C++ calculators with example data
 test: $(addprefix test-, $(TARGETS))
@@ -67,7 +68,7 @@ test: $(addprefix test-, $(TARGETS))
 	@echo "All tests complete!"
 	@echo "===================================="
 
-run: $(O_DIR) $(O_TARGETS)
+run: $(O_DIR) $(O_DIR_TARGETS)
 	@echo "Launching X-Plane MFD..."
 	@./run_mfd.sh
 
