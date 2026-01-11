@@ -20,7 +20,7 @@
 namespace xplane_mfd::calc
 {
 
-// Mathematical constants (AV Rule 52: lowercase)
+// Mathematical constants
 const double deg_to_rad = std::numbers::pi / 180.0;
 const double rad_to_deg = 180.0 / std::numbers::pi;
 const double gravity    = 9.80665;  // m/pow(s, 2)
@@ -29,10 +29,10 @@ const double ft_to_m    = 0.3048;
 const double m_to_ft    = 3.28084;
 const double nm_to_ft   = 6076.12;
 
-// Fixed-size array limit (AV Rule 206: no dynamic allocation)
+// Fixed-size array limit
 const int32_t max_ias_history = 20;
 
-// Calculation constants (AV Rule 151: no magic numbers)
+// Calculation constants
 const double angle_wrap             = 360.0;
 const double half_circle            = 180.0;
 const double sqrt_two               = 1.414;
@@ -41,14 +41,15 @@ const double best_glide_multiplier  = 1.3;
 const double typical_vs             = 60.0;
 const double energy_rate_divisor    = 101.27;
 const double energy_trend_threshold = 50.0;
-const int32_t energy_stable         = 0;
-const int32_t energy_increasing     = 1;
-const int32_t energy_decreasing     = -1;
-const double two_point_zero         = 2.0;
-const double hundred_percent        = 100.0;
 const double min_history_for_stats  = 2.0;
 
-// JSF-compliant parse function
+enum class Trend
+{
+    decreasing = -1,
+    stable     = 0,
+    increasing = 1,
+};
+
 bool parse_double(const char* str,
                   double& result)
 {
@@ -87,14 +88,11 @@ double normalize_angle(double angle)
     return result;
 }
 
-// JSF-COMPLIANT: Iterative binomial coefficient calculation (n choose k)
-// AV Rule 119: No recursion allowed
-// AV Rule 113: Single exit point
-// Uses iterative formula to avoid overflow: C(n,k) = ∏(i=1 to k) (n-k+i)/i
+// Uses iterative formula to avoid overflow: C(n,k) = product(i=1 to k) (n-k+i)/i
 uint64_t binomial_coefficient(uint32_t n,
                               uint32_t k)
 {
-    uint64_t result = 0;  // Single exit point variable
+    uint64_t result = 0;
 
     if (k > n)
     {
@@ -127,7 +125,6 @@ uint64_t binomial_coefficient(uint32_t n,
     return result;  // Single exit point
 }
 
-// 1. Wind vector calculation
 struct WindData
 {
     double speed_kts;
@@ -137,7 +134,6 @@ struct WindData
     double gust_factor;
 };
 
-// AV Rule 58: Long parameter lists formatted one per line
 WindData calculate_wind_vector(double tas_kts,
                                double gs_kts,
                                double heading_deg,
@@ -198,7 +194,6 @@ WindData calculate_wind_vector(double tas_kts,
     return result;
 }
 
-// 2. Envelope margins
 struct EnvelopeMargins
 {
     double stall_margin_pct;
@@ -209,7 +204,6 @@ struct EnvelopeMargins
     double corner_speed_kts;
 };
 
-// AV Rule 58: Long parameter lists formatted one per line
 EnvelopeMargins calculate_envelope(double bank_deg,
                                    double ias_kts,
                                    double mach,
@@ -225,29 +219,28 @@ EnvelopeMargins calculate_envelope(double bank_deg,
 
     // Stall speed increases with load factor
     double vs_actual        = vso_kts * sqrt(result.load_factor);
-    result.stall_margin_pct = ((ias_kts - vs_actual) / vs_actual) * hundred_percent;
+    result.stall_margin_pct = ((ias_kts - vs_actual) / vs_actual) * 100.0;
 
     // VMO margin
-    result.vmo_margin_pct = ((vne_kts - ias_kts) / vne_kts) * hundred_percent;
+    result.vmo_margin_pct = ((vne_kts - ias_kts) / vne_kts) * 100.0;
 
     // MMO margin
-    result.mmo_margin_pct = ((mmo - mach) / mmo) * hundred_percent;
+    result.mmo_margin_pct = ((mmo - mach) / mmo) * 100.0;
 
     // Minimum margin
     result.min_margin_pct = std::min({result.stall_margin_pct, result.vmo_margin_pct, result.mmo_margin_pct});
 
     // Corner speed estimate
-    result.corner_speed_kts = vs_actual * sqrt_two;  // Vc ≈ Vs * √2
+    result.corner_speed_kts = vs_actual * sqrt_two;  // Vc is almost Vs * sqrt(2)
 
     return result;
 }
 
-// 3. Energy management
 struct EnergyData
 {
     double specific_energy_ft;
     double energy_rate_kts;
-    int32_t trend;  // 1=increasing, 0=stable, -1=decreasing
+    Trend trend;  // 1=increasing, 0=stable, -1=decreasing
 };
 
 EnergyData calculate_energy(double tas_kts,
@@ -256,10 +249,10 @@ EnergyData calculate_energy(double tas_kts,
 {
     EnergyData result;
 
-    // Specific energy: Es = h + V²/(2g)
+    // Specific energy: Es = h + pow(V, 2)/(2g)
     double v_ms               = tas_kts * kts_to_ms;
     double h_m                = altitude_ft * ft_to_m;
-    double kinetic_energy_m   = (v_ms * v_ms) / (two_point_zero * gravity);
+    double kinetic_energy_m   = (v_ms * v_ms) / (2.0 * gravity);
     double total_energy_m     = h_m + kinetic_energy_m;
     result.specific_energy_ft = total_energy_m * m_to_ft;
 
@@ -269,21 +262,20 @@ EnergyData calculate_energy(double tas_kts,
     // Trend
     if (vs_fpm > energy_trend_threshold)
     {
-        result.trend = energy_increasing;
+        result.trend = Trend::increasing;
     }
     else if (vs_fpm < -energy_trend_threshold)
     {
-        result.trend = energy_decreasing;
+        result.trend = Trend::decreasing;
     }
     else
     {
-        result.trend = energy_stable;
+        result.trend = Trend::stable;
     }
 
     return result;
 }
 
-// 4. Glide reach
 struct GlideData
 {
     double still_air_range_nm;
@@ -347,7 +339,7 @@ void print_json_results(const WindData& wind,
     std::cout << "  \"energy\": {\n";
     std::cout << "    \"specific_energy_ft\": " << energy.specific_energy_ft << ",\n";
     std::cout << "    \"energy_rate_kts\": " << energy.energy_rate_kts << ",\n";
-    std::cout << "    \"trend\": " << energy.trend << "\n";
+    std::cout << "    \"trend\": " << static_cast<int32_t>(energy.trend) << "\n";
     std::cout << "  },\n";
 
     // Glide
@@ -399,125 +391,61 @@ struct SensorHistoryBuffer
 
 }  // namespace xplane_mfd::calc
 
-// AV Rule 113: Single exit point
 int main(int argc,
          char* argv[])
 {
-    int32_t return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::success);  //! Single exit point variable
-
     if (argc != 15)
     {
         std::cerr << "Usage: " << argv[0] << " <tas_kts> <gs_kts> <heading> <track> "
                   << "<ias_kts> <mach> <altitude_ft> <agl_ft> <vs_fpm> "
                   << "<weight_kg> <bank_deg> <vso_kts> <vne_kts> <mmo>\n";
-        return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::invalid_argc);
+        return static_cast<int32_t>(xplane_mfd::calc::Return_code::invalid_argc);
     }
-    else
+
+    double tas_kts;
+    double gs_kts;
+    double heading;
+    double track;
+    double ias_kts;
+    double mach;
+    double altitude_ft;
+    double agl_ft;
+    double vs_fpm;
+    double weight_kg;
+    double bank_deg;
+    double vso_kts;
+    double vne_kts;
+    double mmo;
+
+    //? Why are there no custom messages for the arguments like in density altitude calculator?
+    //? No simulated error?
+    if (!xplane_mfd::calc::parse_double(argv[1], tas_kts) || !xplane_mfd::calc::parse_double(argv[2], gs_kts) ||
+        !xplane_mfd::calc::parse_double(argv[3], heading) || !xplane_mfd::calc::parse_double(argv[4], track) ||
+        !xplane_mfd::calc::parse_double(argv[5], ias_kts) || !xplane_mfd::calc::parse_double(argv[6], mach) ||
+        !xplane_mfd::calc::parse_double(argv[7], altitude_ft) || !xplane_mfd::calc::parse_double(argv[8], agl_ft) ||
+        !xplane_mfd::calc::parse_double(argv[9], vs_fpm) || !xplane_mfd::calc::parse_double(argv[10], weight_kg) ||
+        !xplane_mfd::calc::parse_double(argv[11], bank_deg) || !xplane_mfd::calc::parse_double(argv[12], vso_kts) ||
+        !xplane_mfd::calc::parse_double(argv[13], vne_kts) || !xplane_mfd::calc::parse_double(argv[14], mmo))
     {
-        // Parse all inputs
-        // AV Rules 157/204: Avoid side effects in && or || operators
-        // Parse each argument separately to avoid chained side effects
-        double tas_kts, gs_kts, heading, track, ias_kts, mach, altitude_ft, agl_ft;
-        double vs_fpm, weight_kg, bank_deg, vso_kts, vne_kts, mmo;
+        std::cerr << "Error: Invalid numeric argument\n";
+        return static_cast<int32_t>(xplane_mfd::calc::Return_code::parse_failed);
+    }
+    xplane_mfd::calc::SensorHistoryBuffer ias_buffer;
 
-        bool parse_success = true;
-        // TODO: EW!
-        //? Why are there no custom messages for the arguments like in density altitude calculator?
-        //? No simulated error?
-        if (!xplane_mfd::calc::parse_double(argv[1], tas_kts))
-        {
-            parse_success = false;
-        }
-        else if (!xplane_mfd::calc::parse_double(argv[2], gs_kts))
-        {
-            parse_success = false;
-        }
-        else if (!xplane_mfd::calc::parse_double(argv[3], heading))
-        {
-            parse_success = false;
-        }
-        else if (!xplane_mfd::calc::parse_double(argv[4], track))
-        {
-            parse_success = false;
-        }
-        else if (!xplane_mfd::calc::parse_double(argv[5], ias_kts))
-        {
-            parse_success = false;
-        }
-        else if (!xplane_mfd::calc::parse_double(argv[6], mach))
-        {
-            parse_success = false;
-        }
-        else if (!xplane_mfd::calc::parse_double(argv[7], altitude_ft))
-        {
-            parse_success = false;
-        }
-        else if (!xplane_mfd::calc::parse_double(argv[8], agl_ft))
-        {
-            parse_success = false;
-        }
-        else if (!xplane_mfd::calc::parse_double(argv[9], vs_fpm))
-        {
-            parse_success = false;
-        }
-        else if (!xplane_mfd::calc::parse_double(argv[10], weight_kg))
-        {
-            parse_success = false;
-        }
-        else if (!xplane_mfd::calc::parse_double(argv[11], bank_deg))
-        {
-            parse_success = false;
-        }
-        else if (!xplane_mfd::calc::parse_double(argv[12], vso_kts))
-        {
-            parse_success = false;
-        }
-        else if (!xplane_mfd::calc::parse_double(argv[13], vne_kts))
-        {
-            parse_success = false;
-        }
-        else if (!xplane_mfd::calc::parse_double(argv[14], mmo))
-        {
-            parse_success = false;
-        }
+    for (int32_t i = 0; i < 30; ++i)
+    {
+        double new_reading = 150.0 + (i % 7) - 3.0;
 
-        if (!parse_success)
-        {
-            std::cerr << "Error: Invalid numeric argument\n";
-            return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::parse_failed);
-        }
-        else
-        {
-            // 1. Pre-allocate the buffer at initialization (on the stack).
-            // This happens ONCE. No memory is allocated inside any loops.
-            xplane_mfd::calc::SensorHistoryBuffer ias_buffer;
-
-            for (int32_t i = 0; i < 30; ++i)
-            {
-                double new_reading = 150.0 + (i % 7) - 3.0;
-
-                ias_buffer.add_reading(new_reading);
-            }
-
-            xplane_mfd::calc::WindData wind = xplane_mfd::calc::calculate_wind_vector(
-                tas_kts, gs_kts, heading, track, ias_buffer.get_data_ptr(), ias_buffer.get_size());
-
-            // 2. Calculate envelope margins
-            xplane_mfd::calc::EnvelopeMargins envelope =
-                xplane_mfd::calc::calculate_envelope(bank_deg, ias_kts, mach, vso_kts, vne_kts, mmo);
-
-            // 3. Calculate energy state
-            xplane_mfd::calc::EnergyData energy = xplane_mfd::calc::calculate_energy(tas_kts, altitude_ft, vs_fpm);
-
-            // 4. Calculate glide reach
-            xplane_mfd::calc::GlideData glide = xplane_mfd::calc::calculate_glide_reach(agl_ft, tas_kts, wind.headwind);
-
-            // Output JSON
-            xplane_mfd::calc::print_json_results(wind, envelope, energy, glide);
-
-            return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::success);
-        }
+        ias_buffer.add_reading(new_reading);
     }
 
-    return return_code;  // Single exit point
+    xplane_mfd::calc::WindData wind = xplane_mfd::calc::calculate_wind_vector(
+        tas_kts, gs_kts, heading, track, ias_buffer.get_data_ptr(), ias_buffer.get_size());
+    xplane_mfd::calc::EnvelopeMargins envelope =
+        xplane_mfd::calc::calculate_envelope(bank_deg, ias_kts, mach, vso_kts, vne_kts, mmo);
+    xplane_mfd::calc::EnergyData energy = xplane_mfd::calc::calculate_energy(tas_kts, altitude_ft, vs_fpm);
+    xplane_mfd::calc::GlideData glide   = xplane_mfd::calc::calculate_glide_reach(agl_ft, tas_kts, wind.headwind);
+    xplane_mfd::calc::print_json_results(wind, envelope, energy, glide);
+
+    return static_cast<int32_t>(xplane_mfd::calc::Return_code::success);
 }
