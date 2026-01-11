@@ -3,19 +3,6 @@
 //
 // Calculates headwind, crosswind, and wind correction angle
 // from aircraft position and wind data.
-//
-// JSF Compliance:
-// - AV Rule 208: No exceptions (throw/catch/try) - uses error codes
-// - AV Rule 209: Fixed-width types (int32_t, double)
-// - AV Rule 206: No dynamic memory allocation
-// - AV Rule 119: No recursion
-// - AV Rule 52: Constants in lowercase
-// - AV Rule 113: Single exit point
-// - AV Rule 126: C++ style comments only (//)
-//
-// Compile: g++ -std=c++20 -O3 -o wind_calculator wind_calculator.cpp
-//
-// Usage: ./wind_calculator <track> <heading> <wind_dir> <wind_speed>
 
 #include "xplane_mfd_calc.h"
 #include <cmath>
@@ -28,20 +15,8 @@
 namespace xplane_mfd::calc
 {
 
-// Mathematical constants (AV Rule 52: lowercase)
-const double deg_to_rad          = std::numbers::pi / 180.0;
-const double angle_wrap_limit    = 360.0;
-const double half_circle         = 180.0;
+// Mathematical constants
 const double wind_calm_threshold = 0.0;
-
-// JSF-compliant parse function (no exceptions)
-bool parse_double(const char* str,
-                  double& result)
-{
-    char* end = nullptr;
-    result    = strtod(str, &end);
-    return (end != str && *end == '\0');
-}
 
 struct WindComponents
 {
@@ -58,10 +33,10 @@ struct WindComponents
 // predictable worst-case execution time (WCET) is required
 double normalize_angle(double angle)
 {
-    double result = fmod(angle, angle_wrap_limit);
+    double result = fmod(angle, angle_wrap);
     if (result < wind_calm_threshold)
     {
-        result += angle_wrap_limit;
+        result += angle_wrap;
     }
     return result;
 }
@@ -82,13 +57,13 @@ WindComponents calculate_wind(double track,
     // Calculate drift angle
     result.drift = normalize_angle(track - heading);
     if (result.drift > half_circle)
-        result.drift -= angle_wrap_limit;
+        result.drift -= angle_wrap;
 
     // Wind direction is where wind comes FROM
     // Calculate angle of wind-from relative to track
     double wind_from_relative = normalize_angle(wind_dir - track);
     if (wind_from_relative > half_circle)
-        wind_from_relative -= angle_wrap_limit;
+        wind_from_relative -= angle_wrap;
 
     // Convert to radians for trig
     double wind_from_rad = wind_from_relative * deg_to_rad;

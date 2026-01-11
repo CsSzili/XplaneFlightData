@@ -6,19 +6,6 @@
 // - Required vertical speed for path
 // - Flight path angle
 // - Time to altitude constraint
-//
-// JSF Compliance:
-// - AV Rule 208: No exceptions (throw/catch/try)
-// - AV Rule 209: Fixed-width types (int32_t, double)
-// - AV Rule 206: No dynamic memory allocation
-// - AV Rule 119: No recursion
-// - AV Rule 52: Constants in lowercase
-// - AV Rule 113: Single exit point
-// - AV Rule 126: C++ style comments only (//)
-//
-// Compile: g++ -std=c++20 -O3 -o vnav_calculator vnav_calculator.cpp
-//
-// Usage: ./vnav_calculator <current_alt_ft> <target_alt_ft> <distance_nm> <groundspeed_kts> <current_vs_fpm>
 
 #include "xplane_mfd_calc.h"
 #include <cmath>
@@ -31,13 +18,10 @@
 namespace xplane_mfd::calc
 {
 
-// Mathematical constants (AV Rule 52: lowercase)
-const double deg_to_rad    = std::numbers::pi / 180.0;
-const double rad_to_deg    = 180.0 / std::numbers::pi;
-const double nm_to_ft      = 6076.12;
+// Mathematical constants
 const double three_deg_rad = 3.0 * deg_to_rad;
 
-// Calculation constants (AV Rule 151: no magic numbers)
+// Calculation constants
 const double vs_conversion_factor = 101.27;  // Converts GS*tan(γ) to VS in fpm
 const double min_distance_nm      = 0.01;
 const double min_groundspeed_kts  = 1.0;
@@ -45,15 +29,6 @@ const double min_vs_for_time_calc = 1.0;
 const double infinite_time        = 999.9;
 const double zero_distance        = 0.0;
 const double thousand_feet        = 1000.0;
-
-// JSF-compliant parse function
-bool parse_double(const char* str,
-                  double& result)
-{
-    char* end = nullptr;
-    result    = strtod(str, &end);
-    return (end != str && *end == '\0');
-}
 
 struct VNAVData
 {

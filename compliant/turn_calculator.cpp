@@ -7,19 +7,6 @@
 // - Lead turn distance for course changes
 // - Standard rate bank angle
 // - Time to turn
-//
-// JSF Compliance:
-// - AV Rule 208: No exceptions (throw/catch/try)
-// - AV Rule 209: Fixed-width types (int32_t, double)
-// - AV Rule 206: No dynamic memory allocation
-// - AV Rule 119: No recursion
-// - AV Rule 52: Constants in lowercase
-// - AV Rule 113: Single exit point
-// - AV Rule 126: C++ style comments only (//)
-//
-// Compile: g++ -std=c++20 -O3 -o turn_calculator turn_calculator.cpp
-//
-// Usage: ./turn_calculator <tas_kts> <bank_deg> <course_change_deg>
 
 #include "xplane_mfd_calc.h"
 #include <cmath>
@@ -32,14 +19,10 @@
 namespace xplane_mfd::calc
 {
 
-// Mathematical constants (AV Rule 52: lowercase)
-const double deg_to_rad    = std::numbers::pi / 180.0;
-const double rad_to_deg    = 180.0 / std::numbers::pi;
-const double gravity       = 9.80665;   // m/s²
-const double kts_to_ms     = 0.514444;  // knots to m/s
+// Mathematical constants
 const double standard_rate = 3.0;       // degrees per second
 
-// Magic number constants (AV Rule 151: no magic numbers)
+// Calculation constants
 const double infinite_radius_nm      = 999.9;
 const double infinite_radius_ft      = 999900.0;
 const double zero_turn_rate          = 0.0;
@@ -48,15 +31,6 @@ const double min_tan_threshold       = 0.001;
 const double min_turn_rate_threshold = 0.01;
 const double meters_per_nm           = 1852.0;
 const double feet_per_meter          = 3.28084;
-
-// JSF-compliant parse function
-bool parse_double(const char* str,
-                  double& result)
-{
-    char* end = nullptr;
-    result    = strtod(str, &end);
-    return (end != str && *end == '\0');
-}
 
 struct TurnData
 {

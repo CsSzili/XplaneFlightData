@@ -33,29 +33,6 @@ const double max_altitude_ft   = 60000.0;
 const double min_temperature_c = -60.0;
 const double max_temperature_c = 60.0;
 
-// Converts a string to a double
-bool parse_double(const char* str,  // Input string
-                  double& result)   // Converted double
-{
-    char* end = nullptr;
-    result    = strtod(str, &end);
-    return (end != str && *end == '\0');
-}
-
-// Converts a string to an int
-bool parse_int32(const char* str,  // Input string
-                 int32_t& result)  // Converted int
-{
-    char* end  = nullptr;
-    long value = strtol(str, &end, 10);
-    if (end != str && *end == '\0')
-    {
-        result = static_cast<int32_t>(value);
-        return true;
-    }
-    return false;
-}
-
 struct DensityAltitudeData
 {
     double density_altitude_ft;      // Density altitude

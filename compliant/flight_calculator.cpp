@@ -20,21 +20,10 @@
 namespace xplane_mfd::calc
 {
 
-// Mathematical constants
-const double deg_to_rad = std::numbers::pi / 180.0;
-const double rad_to_deg = 180.0 / std::numbers::pi;
-const double gravity    = 9.80665;  // m/pow(s, 2)
-const double kts_to_ms  = 0.514444;
-const double ft_to_m    = 0.3048;
-const double m_to_ft    = 3.28084;
-const double nm_to_ft   = 6076.12;
-
 // Fixed-size array limit
 const int32_t max_ias_history = 20;
 
 // Calculation constants
-const double angle_wrap             = 360.0;
-const double half_circle            = 180.0;
 const double sqrt_two               = 1.414;
 const double typical_glide_ratio    = 12.0;
 const double best_glide_multiplier  = 1.3;
@@ -49,14 +38,6 @@ enum class Trend
     stable     = 0,
     increasing = 1,
 };
-
-bool parse_double(const char* str,
-                  double& result)
-{
-    char* end = nullptr;
-    result    = strtod(str, &end);
-    return (end != str && *end == '\0');
-}
 
 struct Vector2D
 {
