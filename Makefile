@@ -28,14 +28,15 @@ endif
 # --------------------------------------------------
 
 O_DIR_PARENT = build
-ifneq (COMP,0)
-CXXFLAGS = $(CXXFLAGS_COMPLIANT)
-SRC_DIR = compliant
-O_DIR = $(O_DIR_PARENT)/compliant
-else
+COMP ?= 1
+ifeq (COMP,0)
 CXXFLAGS = $(CXXFLAGS_NON_COMPLIANT)
 SRC_DIR = non-compliant
 O_DIR = $(O_DIR_PARENT)/non-compliant
+else
+CXXFLAGS = $(CXXFLAGS_COMPLIANT)
+SRC_DIR = compliant
+O_DIR = $(O_DIR_PARENT)/compliant
 endif
 TARGETS := $(TARGETS)
 O_TARGETS := $(addsuffix $(O_EXT), $(TARGETS))
@@ -80,7 +81,7 @@ lizard_w:
 
 run: $(O_DIR) $(O_DIR_TARGETS)
 	@echo "Launching X-Plane MFD..."
-	@./run_mfd.sh
+	@py aircraft_mfd.py
 
 help:
 	@echo "make"
@@ -92,3 +93,6 @@ help:
 	@echo "    lizard:   Displays information about the length and complexity of the files and functions"
 	@echo "    lizard_w: Only displays warnings about the length and complexity of the files and functions"
 	@echo "    run:      Runs aircraft_mfd.py"
+	@echo ""
+	@echo "Optional parameters"
+	@ehco "    COMP: If not 0, build the compliant version"
