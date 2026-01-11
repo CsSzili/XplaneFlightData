@@ -12,10 +12,8 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
-#include <cstdlib>
 #include <iomanip>
 #include <iostream>
-#include <numbers>
 
 namespace xplane_mfd::calc
 {

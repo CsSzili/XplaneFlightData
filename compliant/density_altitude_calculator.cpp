@@ -11,7 +11,6 @@
 #include "xplane_mfd_calc.h"
 #include <cmath>
 #include <cstdint>
-#include <cstdlib>
 #include <cstring>
 #include <iomanip>
 #include <iostream>

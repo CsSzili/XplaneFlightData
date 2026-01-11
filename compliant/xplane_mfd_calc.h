@@ -2,6 +2,7 @@
 #define XPLANE_MFD_CALC
 
 #include <cstdint>
+#include <cstdlib>
 #include <numbers>
 
 namespace xplane_mfd::calc

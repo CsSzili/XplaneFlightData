@@ -10,10 +10,8 @@
 #include "xplane_mfd_calc.h"
 #include <cmath>
 #include <cstdint>
-#include <cstdlib>
 #include <iomanip>
 #include <iostream>
-#include <numbers>
 
 namespace xplane_mfd::calc
 {
