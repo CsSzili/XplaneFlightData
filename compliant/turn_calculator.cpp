@@ -20,7 +20,7 @@ namespace xplane_mfd::calc
 {
 
 // Mathematical constants
-const double standard_rate = 3.0;       // degrees per second
+const double standard_rate = 3.0;  // degrees per second
 
 // Calculation constants
 const double infinite_radius_nm      = 999.9;
@@ -59,7 +59,7 @@ TurnData calculate_turn_performance(double tas_kts,
     // Calculate load factor
     result.load_factor = 1.0 / cos(phi_rad);
 
-    // Turn radius: R = V² / (g * tan φ)
+    // Turn radius: R = pow(V, 2) / (g * tan phi)
     double tan_phi = tan(phi_rad);
     if (fabs(tan_phi) < min_tan_threshold)
     {
@@ -79,11 +79,11 @@ TurnData calculate_turn_performance(double tas_kts,
         result.radius_nm = radius_m / meters_per_nm;
         result.radius_ft = radius_m * feet_per_meter;
 
-        // Turn rate: ω = (g * tan φ) / V (rad/s) -> convert to deg/s
+        // Turn rate: omega = (g * tan phi) / V (rad/s) -> convert to deg/s
         double omega_rad_s   = (gravity * tan_phi) / v_ms;
         result.turn_rate_dps = omega_rad_s * rad_to_deg;
 
-        // Lead distance: L = R * tan(Δψ/2)
+        // Lead distance: L = R * tan(Delta psi/2)
         double lead_m           = radius_m * tan(delta_psi_rad / 2.0);
         result.lead_distance_nm = lead_m / meters_per_nm;
         result.lead_distance_ft = lead_m * feet_per_meter;
@@ -99,7 +99,7 @@ TurnData calculate_turn_performance(double tas_kts,
         }
     }
 
-    // Standard rate bank angle: φ = atan(ω * V / g) where ω = 3°/s
+    // Standard rate bank angle: phi = atan(omega * V / g) where omega = 3 deg/s
     double std_rate_rad_s     = standard_rate * deg_to_rad;
     double std_bank_rad       = atan((std_rate_rad_s * v_ms) / gravity);
     result.standard_rate_bank = std_bank_rad * rad_to_deg;
@@ -134,62 +134,53 @@ void print_usage(const char* program_name)
     std::cerr << "  course_change_deg: Course change (degrees)\n\n";
     std::cerr << "Example:\n";
     std::cerr << "  " << program_name << " 250 25 90\n";
-    std::cerr << "  (250 kts TAS, 25° bank, 90° turn)\n";
+    std::cerr << "  (250 kts TAS, 25 deg bank, 90 deg turn)\n";
 }
 
 // AV Rule 113: Single exit point
 int main(int argc,
          char* argv[])
 {
-    int32_t return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::success);  //! Single exit point variable
-
-    // Validate argument count
     if (argc != 4)
     {
         print_usage(argv[0]);
-        return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::invalid_argc);
+        return static_cast<int>(xplane_mfd::calc::Return_code::invalid_argc);
     }
-    else
+    // Parse arguments
+    double tas_kts;
+    double bank_deg;
+    double course_change_deg;
+
+    if (!xplane_mfd::calc::parse_double(argv[1], tas_kts))
     {
-        // Parse arguments
-        double tas_kts;
-        double bank_deg;
-        double course_change_deg;
-
-        if (!xplane_mfd::calc::parse_double(argv[1], tas_kts))
-        {
-            std::cerr << "Error: Invalid TAS\n";
-            return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::parse_failed);
-        }
-        else if (!xplane_mfd::calc::parse_double(argv[2], bank_deg))
-        {
-            std::cerr << "Error: Invalid bank angle\n";
-            return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::parse_failed);
-        }
-        else if (!xplane_mfd::calc::parse_double(argv[3], course_change_deg))
-        {
-            std::cerr << "Error: Invalid course change\n";
-            return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::parse_failed);
-        }
-        else if (tas_kts <= 0.0)
-        {
-            std::cerr << "Error: TAS must be positive\n";
-            return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::invalid_value);
-        }
-        else if (bank_deg < 0.0 || bank_deg > 90.0)
-        {
-            std::cerr << "Error: Bank angle must be between 0 and 90 degrees\n";
-            return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::invalid_value);
-        }
-        else
-        {
-            // All inputs valid - calculate and output
-            xplane_mfd::calc::TurnData turn =
-                xplane_mfd::calc::calculate_turn_performance(tas_kts, bank_deg, course_change_deg);
-            xplane_mfd::calc::print_json(turn);
-            return_code = static_cast<int32_t>(xplane_mfd::calc::Return_code::success);
-        }
+        std::cerr << "Error: Invalid TAS\n";
+        return static_cast<int>(xplane_mfd::calc::Return_code::parse_failed);
+    }
+    if (!xplane_mfd::calc::parse_double(argv[2], bank_deg))
+    {
+        std::cerr << "Error: Invalid bank angle\n";
+        return static_cast<int>(xplane_mfd::calc::Return_code::parse_failed);
+    }
+    if (!xplane_mfd::calc::parse_double(argv[3], course_change_deg))
+    {
+        std::cerr << "Error: Invalid course change\n";
+        return static_cast<int>(xplane_mfd::calc::Return_code::parse_failed);
     }
 
-    return return_code;  // Single exit point
+    if (tas_kts <= 0.0)
+    {
+        std::cerr << "Error: TAS must be positive\n";
+        return static_cast<int>(xplane_mfd::calc::Return_code::invalid_value);
+    }
+    if (bank_deg < 0.0 || bank_deg > 90.0)
+    {
+        std::cerr << "Error: Bank angle must be between 0 and 90 degrees\n";
+        return static_cast<int>(xplane_mfd::calc::Return_code::invalid_value);
+    }
+
+    // Calculate and output results
+    xplane_mfd::calc::TurnData turn =
+        xplane_mfd::calc::calculate_turn_performance(tas_kts, bank_deg, course_change_deg);
+    xplane_mfd::calc::print_json(turn);
+    return static_cast<int>(xplane_mfd::calc::Return_code::success);
 }
