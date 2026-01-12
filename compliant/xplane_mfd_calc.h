@@ -5,7 +5,10 @@
 #include <cstdlib>
 #include <numbers>
 
-namespace xplane_mfd::calc
+namespace airv
+{
+
+namespace units
 {
 
 // Global mathematical constants
@@ -19,6 +22,8 @@ const double nm_to_ft    = 6076.12;
 const double angle_wrap  = 360.0;
 const double half_circle = 180.0;
 
+}  // namespace units
+
 enum class Return_code : int32_t
 {
     success       = 0,  // Code ran successfully
@@ -28,6 +33,8 @@ enum class Return_code : int32_t
     simulated     = 4,  // Error was forced by the force_error parameter
 };
 
+namespace utils
+{
 
 // Converts a string to a double
 bool parse_double(const char* str,  // Input string
@@ -52,6 +59,8 @@ bool parse_int32(const char* str,  // Input string
     return false;
 }
 
-}  // namespace xplane_mfd::calc
+}  // namespace utils
+
+}  // namespace airv
 
 #endif  // !XPLANE_MFD_CALC

@@ -15,7 +15,7 @@
 #include <iomanip>
 #include <iostream>
 
-namespace xplane_mfd::calc
+namespace airv::calc
 {
 
 const double sea_level_temp_c           = 15.0;
@@ -143,7 +143,7 @@ void print_json(const DensityAltitudeData& da)
               << "}\n";
 }
 
-}  // namespace xplane_mfd::calc
+}  // namespace airv::calc
 
 void print_usage(const char* program_name)
 {
@@ -167,7 +167,7 @@ int main(int argc,
     if (argc < 5 || 6 < argc)
     {
         print_usage(argv[0]);
-        return static_cast<int>(xplane_mfd::calc::Return_code::invalid_argc);
+        return static_cast<int>(airv::Return_code::invalid_argc);
     }
 
     double pressure_altitude_ft;
@@ -177,52 +177,52 @@ int main(int argc,
     int32_t force_error = 0;
 
     // Parse optional force_error flag
-    if (argc == 6 && !xplane_mfd::calc::parse_int32(argv[5], force_error))
+    if (argc == 6 && !airv::utils::parse_int32(argv[5], force_error))
     {
         std::cerr << "Error: Invalid force_error flag\n";
-        return static_cast<int>(xplane_mfd::calc::Return_code::parse_failed);
+        return static_cast<int>(airv::Return_code::parse_failed);
     }
     // Simulate error for error handling demonstration
     if (force_error == 1)
     {
         std::cerr << "Error: Simulated (forced) error\n";
         print_usage(argv[0]);
-        return static_cast<int>(xplane_mfd::calc::Return_code::simulated);
+        return static_cast<int>(airv::Return_code::simulated);
     }
-    if (!xplane_mfd::calc::parse_double(argv[1], pressure_altitude_ft))
+    if (!airv::utils::parse_double(argv[1], pressure_altitude_ft))
     {
         std::cerr << "Error: Invalid pressure altitude\n";
-        return static_cast<int>(xplane_mfd::calc::Return_code::parse_failed);
+        return static_cast<int>(airv::Return_code::parse_failed);
     }
-    if (!xplane_mfd::calc::parse_double(argv[2], oat_celsius))
+    if (!airv::utils::parse_double(argv[2], oat_celsius))
     {
         std::cerr << "Error: Invalid temperature\n";
-        return static_cast<int>(xplane_mfd::calc::Return_code::parse_failed);
+        return static_cast<int>(airv::Return_code::parse_failed);
     }
-    if (!xplane_mfd::calc::parse_double(argv[3], ias_kts))
+    if (!airv::utils::parse_double(argv[3], ias_kts))
     {
         std::cerr << "Error: Invalid IAS\n";
-        return static_cast<int>(xplane_mfd::calc::Return_code::parse_failed);
+        return static_cast<int>(airv::Return_code::parse_failed);
     }
-    if (!xplane_mfd::calc::parse_double(argv[4], tas_kts))
+    if (!airv::utils::parse_double(argv[4], tas_kts))
     {
         std::cerr << "Error: Invalid TAS\n";
-        return static_cast<int>(xplane_mfd::calc::Return_code::parse_failed);
+        return static_cast<int>(airv::Return_code::parse_failed);
     }
 
     // Validate inputs
-    if (pressure_altitude_ft < xplane_mfd::calc::min_altitude_ft ||
-        pressure_altitude_ft > xplane_mfd::calc::max_altitude_ft)
+    if (pressure_altitude_ft < airv::calc::min_altitude_ft || pressure_altitude_ft > airv::calc::max_altitude_ft)
     {
         std::cerr << "Warning: Pressure altitude outside typical range\n";
     }
-    if (oat_celsius < xplane_mfd::calc::min_temperature_c || oat_celsius > xplane_mfd::calc::max_temperature_c)
+    if (oat_celsius < airv::calc::min_temperature_c || oat_celsius > airv::calc::max_temperature_c)
     {
         std::cerr << "Warning: Temperature outside typical range\n";
     }
 
     // Calculate and output results
-    print_json(xplane_mfd::calc::calculate_density_altitude_data(pressure_altitude_ft, oat_celsius, ias_kts, tas_kts));
+    airv::calc::print_json(
+        airv::calc::calculate_density_altitude_data(pressure_altitude_ft, oat_celsius, ias_kts, tas_kts));
 
-    return static_cast<int>(xplane_mfd::calc::Return_code::success);
+    return static_cast<int>(airv::Return_code::success);
 }

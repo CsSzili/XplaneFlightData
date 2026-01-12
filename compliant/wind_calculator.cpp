@@ -10,7 +10,7 @@
 #include <iomanip>
 #include <iostream>
 
-namespace xplane_mfd::calc
+namespace airv::calc
 {
 
 // Mathematical constants
@@ -31,10 +31,10 @@ struct WindComponents
 // predictable worst-case execution time (WCET) is required
 double normalize_angle(double angle)
 {
-    double result = fmod(angle, angle_wrap);
+    double result = fmod(angle, units::angle_wrap);
     if (result < wind_calm_threshold)
     {
-        result += angle_wrap;
+        result += units::angle_wrap;
     }
     return result;
 }
@@ -54,17 +54,17 @@ WindComponents calculate_wind(double track,
 
     // Calculate drift angle
     result.drift = normalize_angle(track - heading);
-    if (result.drift > half_circle)
-        result.drift -= angle_wrap;
+    if (result.drift > units::half_circle)
+        result.drift -= units::angle_wrap;
 
     // Wind direction is where wind comes FROM
     // Calculate angle of wind-from relative to track
     double wind_from_relative = normalize_angle(wind_dir - track);
-    if (wind_from_relative > half_circle)
-        wind_from_relative -= angle_wrap;
+    if (wind_from_relative > units::half_circle)
+        wind_from_relative -= units::angle_wrap;
 
     // Convert to radians for trig
-    double wind_from_rad = wind_from_relative * deg_to_rad;
+    double wind_from_rad = wind_from_relative * units::deg_to_rad;
 
     // Calculate components using wind-from angle
     result.headwind   = -wind_speed * cos(wind_from_rad);
@@ -90,7 +90,7 @@ void print_json(const WindComponents& wind)
     std::cout << "}\n";
 }
 
-}  // namespace xplane_mfd::calc
+}  // namespace airv::calc
 
 void print_usage(const char* program_name)
 {
@@ -109,14 +109,14 @@ void print_usage(const char* program_name)
 int main(int argc,
          char* argv[])
 {
-    xplane_mfd::calc::Return_code return_code = xplane_mfd::calc::Return_code::success;  //! Single exit point variable
+    airv::Return_code return_code = airv::Return_code::success;  //! Single exit point variable
 
     // TODO: EW!
     // JSF-compliant: No exceptions, use error codes
     if (argc != 5)
     {
         print_usage(argv[0]);
-        return_code = xplane_mfd::calc::Return_code::invalid_argc;
+        return_code = airv::Return_code::invalid_argc;
     }
     else
     {
@@ -126,39 +126,39 @@ int main(int argc,
         double wind_dir;
         double wind_speed;
 
-        if (!xplane_mfd::calc::parse_double(argv[1], track))
+        if (!airv::utils::parse_double(argv[1], track))
         {
             std::cerr << "Error: Invalid track angle\n";
-            return_code = xplane_mfd::calc::Return_code::parse_failed;
+            return_code = airv::Return_code::parse_failed;
         }
-        else if (!xplane_mfd::calc::parse_double(argv[2], heading))
+        else if (!airv::utils::parse_double(argv[2], heading))
         {
             std::cerr << "Error: Invalid heading\n";
-            return_code = xplane_mfd::calc::Return_code::parse_failed;
+            return_code = airv::Return_code::parse_failed;
         }
-        else if (!xplane_mfd::calc::parse_double(argv[3], wind_dir))
+        else if (!airv::utils::parse_double(argv[3], wind_dir))
         {
             std::cerr << "Error: Invalid wind direction\n";
-            return_code = xplane_mfd::calc::Return_code::parse_failed;
+            return_code = airv::Return_code::parse_failed;
         }
-        else if (!xplane_mfd::calc::parse_double(argv[4], wind_speed))
+        else if (!airv::utils::parse_double(argv[4], wind_speed))
         {
             std::cerr << "Error: Invalid wind speed\n";
-            return_code = xplane_mfd::calc::Return_code::parse_failed;
+            return_code = airv::Return_code::parse_failed;
         }
-        else if (wind_speed < xplane_mfd::calc::wind_calm_threshold)
+        else if (wind_speed < airv::calc::wind_calm_threshold)
         {
             std::cerr << "Error: Wind speed cannot be negative\n";
-            return_code = xplane_mfd::calc::Return_code::invalid_value;
+            return_code = airv::Return_code::invalid_value;
         }
         else
         {
             // All inputs valid - calculate wind components
-            xplane_mfd::calc::WindComponents wind = xplane_mfd::calc::calculate_wind(track, heading, wind_dir, wind_speed);
+            airv::calc::WindComponents wind = airv::calc::calculate_wind(track, heading, wind_dir, wind_speed);
 
             // Output JSON
-            xplane_mfd::calc::print_json(wind);
-            return_code = xplane_mfd::calc::Return_code::success;
+            airv::calc::print_json(wind);
+            return_code = airv::Return_code::success;
         }
     }
 

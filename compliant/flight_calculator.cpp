@@ -15,7 +15,7 @@
 #include <iomanip>
 #include <iostream>
 
-namespace xplane_mfd::calc
+namespace airv::calc
 {
 
 // Fixed-size array limit
@@ -59,10 +59,10 @@ struct Vector2D
 // predictable worst-case execution time (WCET) is required
 double normalize_angle(double angle)
 {
-    double result = fmod(angle, angle_wrap);
+    double result = fmod(angle, units::angle_wrap);
     if (result < 0.0)
     {
-        result += angle_wrap;
+        result += units::angle_wrap;
     }
     return result;
 }
@@ -123,8 +123,8 @@ WindData calculate_wind_vector(double tas_kts,
     WindData result;
 
     // Convert to vectors
-    double heading_rad = heading_deg * deg_to_rad;
-    double track_rad   = track_deg * deg_to_rad;
+    double heading_rad = heading_deg * units::deg_to_rad;
+    double track_rad   = track_deg * units::deg_to_rad;
 
     // Air vector (TAS in heading direction)
     Vector2D air_vec(tas_kts * sin(heading_rad), tas_kts * cos(heading_rad));
@@ -139,14 +139,14 @@ WindData calculate_wind_vector(double tas_kts,
 
     // Wind direction (where FROM)
     double wind_dir_rad   = atan2(wind_vec.x, wind_vec.y);
-    result.direction_from = normalize_angle(wind_dir_rad * rad_to_deg);
+    result.direction_from = normalize_angle(wind_dir_rad * units::rad_to_deg);
 
     // Components relative to track
     double wind_from_rel = normalize_angle(result.direction_from - track_deg);
-    if (wind_from_rel > half_circle)
-        wind_from_rel -= angle_wrap;
+    if (wind_from_rel > units::half_circle)
+        wind_from_rel -= units::angle_wrap;
 
-    double wind_from_rad = wind_from_rel * deg_to_rad;
+    double wind_from_rad = wind_from_rel * units::deg_to_rad;
     result.headwind      = -result.speed_kts * cos(wind_from_rad);
     result.crosswind     = result.speed_kts * sin(wind_from_rad);
 
@@ -193,7 +193,7 @@ EnvelopeMargins calculate_envelope(double bank_deg,
     EnvelopeMargins result;
 
     // Load factor
-    double bank_rad    = bank_deg * deg_to_rad;
+    double bank_rad    = bank_deg * units::deg_to_rad;
     result.load_factor = 1.0 / cos(bank_rad);
 
     // Stall speed increases with load factor
@@ -229,11 +229,11 @@ EnergyData calculate_energy(double tas_kts,
     EnergyData result;
 
     // Specific energy: Es = h + pow(V, 2)/(2g)
-    double v_ms               = tas_kts * kts_to_ms;
-    double h_m                = altitude_ft * ft_to_m;
-    double kinetic_energy_m   = (v_ms * v_ms) / (2.0 * gravity);
+    double v_ms               = tas_kts * units::kts_to_ms;
+    double h_m                = altitude_ft * units::ft_to_m;
+    double kinetic_energy_m   = (v_ms * v_ms) / (2.0 * units::gravity);
     double total_energy_m     = h_m + kinetic_energy_m;
-    result.specific_energy_ft = total_energy_m * m_to_ft;
+    result.specific_energy_ft = total_energy_m * units::m_to_ft;
 
     // Energy rate (convert VS to equivalent airspeed change)
     result.energy_rate_kts = vs_fpm / energy_rate_divisor;  // Simplified
@@ -274,7 +274,7 @@ GlideData calculate_glide_reach(double agl_ft,
 
     // Still air range
     double range_ft           = agl_ft * result.glide_ratio;
-    result.still_air_range_nm = range_ft / nm_to_ft;
+    result.still_air_range_nm = range_ft / units::nm_to_ft;
 
     // Wind adjustment (simplified)
     double wind_effect            = headwind_kts / tas_kts;
@@ -368,7 +368,7 @@ struct SensorHistoryBuffer
     int32_t get_size() const { return current_size; }
 };
 
-}  // namespace xplane_mfd::calc
+}  // namespace airv::calc
 
 int main(int argc,
          char* argv[])
@@ -378,7 +378,7 @@ int main(int argc,
         std::cerr << "Usage: " << argv[0] << " <tas_kts> <gs_kts> <heading> <track> "
                   << "<ias_kts> <mach> <altitude_ft> <agl_ft> <vs_fpm> "
                   << "<weight_kg> <bank_deg> <vso_kts> <vne_kts> <mmo>\n";
-        return static_cast<int>(xplane_mfd::calc::Return_code::invalid_argc);
+        return static_cast<int>(airv::Return_code::invalid_argc);
     }
 
     double tas_kts;
@@ -398,18 +398,18 @@ int main(int argc,
 
     //? Why are there no custom messages for the arguments like in density altitude calculator?
     //? No simulated error?
-    if (!xplane_mfd::calc::parse_double(argv[1], tas_kts) || !xplane_mfd::calc::parse_double(argv[2], gs_kts) ||
-        !xplane_mfd::calc::parse_double(argv[3], heading) || !xplane_mfd::calc::parse_double(argv[4], track) ||
-        !xplane_mfd::calc::parse_double(argv[5], ias_kts) || !xplane_mfd::calc::parse_double(argv[6], mach) ||
-        !xplane_mfd::calc::parse_double(argv[7], altitude_ft) || !xplane_mfd::calc::parse_double(argv[8], agl_ft) ||
-        !xplane_mfd::calc::parse_double(argv[9], vs_fpm) || !xplane_mfd::calc::parse_double(argv[10], weight_kg) ||
-        !xplane_mfd::calc::parse_double(argv[11], bank_deg) || !xplane_mfd::calc::parse_double(argv[12], vso_kts) ||
-        !xplane_mfd::calc::parse_double(argv[13], vne_kts) || !xplane_mfd::calc::parse_double(argv[14], mmo))
+    if (!airv::utils::parse_double(argv[1], tas_kts) || !airv::utils::parse_double(argv[2], gs_kts) ||
+        !airv::utils::parse_double(argv[3], heading) || !airv::utils::parse_double(argv[4], track) ||
+        !airv::utils::parse_double(argv[5], ias_kts) || !airv::utils::parse_double(argv[6], mach) ||
+        !airv::utils::parse_double(argv[7], altitude_ft) || !airv::utils::parse_double(argv[8], agl_ft) ||
+        !airv::utils::parse_double(argv[9], vs_fpm) || !airv::utils::parse_double(argv[10], weight_kg) ||
+        !airv::utils::parse_double(argv[11], bank_deg) || !airv::utils::parse_double(argv[12], vso_kts) ||
+        !airv::utils::parse_double(argv[13], vne_kts) || !airv::utils::parse_double(argv[14], mmo))
     {
         std::cerr << "Error: Invalid numeric argument\n";
-        return static_cast<int>(xplane_mfd::calc::Return_code::parse_failed);
+        return static_cast<int>(airv::Return_code::parse_failed);
     }
-    xplane_mfd::calc::SensorHistoryBuffer ias_buffer;
+    airv::calc::SensorHistoryBuffer ias_buffer;
 
     for (int32_t i = 0; i < 30; ++i)
     {
@@ -418,13 +418,13 @@ int main(int argc,
         ias_buffer.add_reading(new_reading);
     }
 
-    xplane_mfd::calc::WindData wind = xplane_mfd::calc::calculate_wind_vector(
+    airv::calc::WindData wind = airv::calc::calculate_wind_vector(
         tas_kts, gs_kts, heading, track, ias_buffer.get_data_ptr(), ias_buffer.get_size());
-    xplane_mfd::calc::EnvelopeMargins envelope =
-        xplane_mfd::calc::calculate_envelope(bank_deg, ias_kts, mach, vso_kts, vne_kts, mmo);
-    xplane_mfd::calc::EnergyData energy = xplane_mfd::calc::calculate_energy(tas_kts, altitude_ft, vs_fpm);
-    xplane_mfd::calc::GlideData glide   = xplane_mfd::calc::calculate_glide_reach(agl_ft, tas_kts, wind.headwind);
-    xplane_mfd::calc::print_json_results(wind, envelope, energy, glide);
+    airv::calc::EnvelopeMargins envelope =
+        airv::calc::calculate_envelope(bank_deg, ias_kts, mach, vso_kts, vne_kts, mmo);
+    airv::calc::EnergyData energy = airv::calc::calculate_energy(tas_kts, altitude_ft, vs_fpm);
+    airv::calc::GlideData glide   = airv::calc::calculate_glide_reach(agl_ft, tas_kts, wind.headwind);
+    airv::calc::print_json_results(wind, envelope, energy, glide);
 
-    return static_cast<int>(xplane_mfd::calc::Return_code::success);
+    return static_cast<int>(airv::Return_code::success);
 }
