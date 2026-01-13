@@ -1,8 +1,10 @@
 // Wind Calculator for X-Plane MFD
 // JSF AV C++ Coding Standard Compliant Version
 //
-// Calculates headwind, crosswind, and wind correction angle
-// from aircraft position and wind data.
+// Calculates wind parameters from aircraft position and wind data:
+// - headwind
+// - crosswind
+// - wind correction angle
 
 #include "xplane_mfd_calc.h"
 #include <cmath>
@@ -26,9 +28,6 @@ struct WindComponents
 };
 
 // Normalize angle to 0-360 range
-// Uses fmod() for deterministic execution time (no variable-iteration loops)
-// This is important for real-time and safety-critical systems where
-// predictable worst-case execution time (WCET) is required
 double normalize_angle(double angle)
 {
     double result = fmod(angle, units::angle_wrap);
@@ -40,10 +39,10 @@ double normalize_angle(double angle)
 }
 
 // Calculate wind components relative to aircraft track
-WindComponents calculate_wind(double track,
-                              double heading,
-                              double wind_dir,
-                              double wind_speed)
+WindComponents calculate_wind(double track,       // Track angle (deg)
+                              double heading,     // Heading angle (deg)
+                              double wind_dir,    // Wind direction (deg)
+                              double wind_speed)  // Wind speed (knots)
 {
     WindComponents result;
 
@@ -109,58 +108,45 @@ void print_usage(const char* program_name)
 int main(int argc,
          char* argv[])
 {
-    airv::Return_code return_code = airv::Return_code::success;  //! Single exit point variable
-
-    // TODO: EW!
-    // JSF-compliant: No exceptions, use error codes
     if (argc != 5)
     {
         print_usage(argv[0]);
-        return_code = airv::Return_code::invalid_argc;
+        return static_cast<int>(airv::Return_code::invalid_argc);
     }
-    else
+    // Parse arguments (JSF-compliant: no throwing parse functions)
+    double track;
+    double heading;
+    double wind_dir;
+    double wind_speed;
+
+    if (!airv::utils::parse_double(argv[1], track))
     {
-        // Parse arguments (JSF-compliant: no throwing parse functions)
-        double track;
-        double heading;
-        double wind_dir;
-        double wind_speed;
-
-        if (!airv::utils::parse_double(argv[1], track))
-        {
-            std::cerr << "Error: Invalid track angle\n";
-            return_code = airv::Return_code::parse_failed;
-        }
-        else if (!airv::utils::parse_double(argv[2], heading))
-        {
-            std::cerr << "Error: Invalid heading\n";
-            return_code = airv::Return_code::parse_failed;
-        }
-        else if (!airv::utils::parse_double(argv[3], wind_dir))
-        {
-            std::cerr << "Error: Invalid wind direction\n";
-            return_code = airv::Return_code::parse_failed;
-        }
-        else if (!airv::utils::parse_double(argv[4], wind_speed))
-        {
-            std::cerr << "Error: Invalid wind speed\n";
-            return_code = airv::Return_code::parse_failed;
-        }
-        else if (wind_speed < airv::calc::wind_calm_threshold)
-        {
-            std::cerr << "Error: Wind speed cannot be negative\n";
-            return_code = airv::Return_code::invalid_value;
-        }
-        else
-        {
-            // All inputs valid - calculate wind components
-            airv::calc::WindComponents wind = airv::calc::calculate_wind(track, heading, wind_dir, wind_speed);
-
-            // Output JSON
-            airv::calc::print_json(wind);
-            return_code = airv::Return_code::success;
-        }
+        std::cerr << "Error: Invalid track angle\n";
+        return static_cast<int>(airv::Return_code::parse_failed);
+    }
+    if (!airv::utils::parse_double(argv[2], heading))
+    {
+        std::cerr << "Error: Invalid heading\n";
+        return static_cast<int>(airv::Return_code::parse_failed);
+    }
+    if (!airv::utils::parse_double(argv[3], wind_dir))
+    {
+        std::cerr << "Error: Invalid wind direction\n";
+        return static_cast<int>(airv::Return_code::parse_failed);
+    }
+    if (!airv::utils::parse_double(argv[4], wind_speed))
+    {
+        std::cerr << "Error: Invalid wind speed\n";
+        return static_cast<int>(airv::Return_code::parse_failed);
+    }
+    if (wind_speed < airv::calc::wind_calm_threshold)
+    {
+        std::cerr << "Error: Wind speed cannot be negative\n";
+        return static_cast<int>(airv::Return_code::invalid_value);
     }
 
-    return static_cast<int>(return_code);  // Single exit point
+    // Calculate and output results
+    airv::calc::print_json(airv::calc::calculate_wind(track, heading, wind_dir, wind_speed));
+
+    return static_cast<int>(airv::Return_code::success);
 }
