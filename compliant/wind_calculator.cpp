@@ -16,7 +16,7 @@ namespace airv::calc
 {
 
 // Mathematical constants
-const double wind_calm_threshold = 0.0;
+constexpr double wind_calm_threshold = 0.0;
 
 struct WindComponents
 {

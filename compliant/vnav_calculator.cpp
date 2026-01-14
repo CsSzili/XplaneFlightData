@@ -17,16 +17,16 @@ namespace airv::calc
 {
 
 // Mathematical constants
-const double three_deg_rad = 3.0 * units::deg_to_rad;
+constexpr double three_deg_rad = 3.0 * units::deg_to_rad;
 
 // Calculation constants
-const double vs_conversion_factor = 101.27;  // Converts GS*tan(gamma) to VS in fpm
-const double min_distance_nm      = 0.01;
-const double min_groundspeed_kts  = 1.0;
-const double min_vs_for_time_calc = 1.0;
-const double infinite_time        = 999.9;
-const double zero_distance        = 0.0;
-const double thousand_feet        = 1000.0;
+constexpr double vs_conversion_factor = 101.27;  // Converts GS*tan(gamma) to VS in fpm
+constexpr double min_distance_nm      = 0.01;
+constexpr double min_groundspeed_kts  = 1.0;
+constexpr double min_vs_for_time_calc = 1.0;
+constexpr double infinite_time        = 999.9;
+constexpr double zero_distance        = 0.0;
+constexpr double thousand_feet        = 1000.0;
 
 struct VNAVData
 {

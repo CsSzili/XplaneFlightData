@@ -3,7 +3,6 @@
 
 #include <cstdint>
 #include <cstdlib>
-#include <numbers>
 
 namespace airv
 {
@@ -12,15 +11,16 @@ namespace units
 {
 
 // Global mathematical constants
-const double deg_to_rad  = std::numbers::pi / 180.0;
-const double rad_to_deg  = 180.0 / std::numbers::pi;
-const double gravity     = 9.80665;  // m/pow(s, 2)
-const double kts_to_ms   = 0.514444;
-const double ft_to_m     = 0.3048;
-const double m_to_ft     = 3.28084;
-const double nm_to_ft    = 6076.12;
-const double angle_wrap  = 360.0;
-const double half_circle = 180.0;
+constexpr double pi          = 3.141592653589793;
+constexpr double deg_to_rad  = pi / 180.0;
+constexpr double rad_to_deg  = 180.0 / pi;
+constexpr double gravity     = 9.80665;  // m/pow(s, 2)
+constexpr double kts_to_ms   = 0.514444;
+constexpr double ft_to_m     = 0.3048;
+constexpr double m_to_ft     = 3.28084;
+constexpr double nm_to_ft    = 6076.12;
+constexpr double angle_wrap  = 360.0;
+constexpr double half_circle = 180.0;
 
 }  // namespace units
 

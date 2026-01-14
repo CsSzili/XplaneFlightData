@@ -18,17 +18,17 @@ namespace airv::calc
 {
 
 // Mathematical constants
-const double standard_rate = 3.0;  // degrees per second
+constexpr double standard_rate = 3.0;  // degrees per second
 
 // Calculation constants
-const double infinite_radius_nm      = 999.9;
-const double infinite_radius_ft      = 999900.0;
-const double zero_turn_rate          = 0.0;
-const double infinite_time           = 999.9;
-const double min_tan_threshold       = 0.001;
-const double min_turn_rate_threshold = 0.01;
-const double meters_per_nm           = 1852.0;
-const double feet_per_meter          = 3.28084;
+constexpr double infinite_radius_nm      = 999.9;
+constexpr double infinite_radius_ft      = 999900.0;
+constexpr double zero_turn_rate          = 0.0;
+constexpr double infinite_time           = 999.9;
+constexpr double min_tan_threshold       = 0.001;
+constexpr double min_turn_rate_threshold = 0.01;
+constexpr double meters_per_nm           = 1852.0;
+constexpr double feet_per_meter          = 3.28084;
 
 struct TurnData
 {

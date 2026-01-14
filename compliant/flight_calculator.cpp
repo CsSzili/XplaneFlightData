@@ -19,16 +19,16 @@ namespace airv::calc
 {
 
 // Fixed-size array limit
-const int32_t max_ias_history = 20;
+constexpr int32_t max_ias_history = 20;
 
 // Calculation constants
-const double sqrt_two               = 1.414;
-const double typical_glide_ratio    = 12.0;
-const double best_glide_multiplier  = 1.3;
-const double typical_vs             = 60.0;
-const double energy_rate_divisor    = 101.27;
-const double energy_trend_threshold = 50.0;
-const double min_history_for_stats  = 2.0;
+constexpr double sqrt_two               = 1.414;  //! Not accurate
+constexpr double typical_glide_ratio    = 12.0;
+constexpr double best_glide_multiplier  = 1.3;
+constexpr double typical_vs             = 60.0;
+constexpr double energy_rate_divisor    = 101.27;
+constexpr double energy_trend_threshold = 50.0;
+constexpr double min_history_for_stats  = 2.0;
 
 enum class Trend
 {

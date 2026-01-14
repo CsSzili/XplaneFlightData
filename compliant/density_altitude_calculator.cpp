@@ -18,19 +18,19 @@
 namespace airv::calc
 {
 
-const double sea_level_temp_c           = 15.0;
-const double temp_lapse_rate            = 0.0019812;  // Celsius per foot (standard lapse rate)
-const double kelvin_offset              = 273.15;
-const double density_alt_factor         = 120.0;
-const double pressure_altitude_constant = 6.8756e-6;
-const double pressure_altitude_exponent = 5.2559;
-const double min_ias_for_ratio          = 10.0;
+constexpr double sea_level_temp_c           = 15.0;
+constexpr double temp_lapse_rate            = 0.0019812;  // Celsius per foot (standard lapse rate)
+constexpr double kelvin_offset              = 273.15;
+constexpr double density_alt_factor         = 120.0;
+constexpr double pressure_altitude_constant = 6.8756e-6;
+constexpr double pressure_altitude_exponent = 5.2559;
+constexpr double min_ias_for_ratio          = 10.0;
 
 // Validation ranges: warning if input is not in range
-const double min_altitude_ft   = -2000.0;
-const double max_altitude_ft   = 60000.0;
-const double min_temperature_c = -60.0;
-const double max_temperature_c = 60.0;
+constexpr double min_altitude_ft   = -2000.0;
+constexpr double max_altitude_ft   = 60000.0;
+constexpr double min_temperature_c = -60.0;
+constexpr double max_temperature_c = 60.0;
 
 struct DensityAltitudeData
 {
