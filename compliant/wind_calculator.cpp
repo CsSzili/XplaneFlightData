@@ -39,9 +39,9 @@ double normalize_angle(double angle)
 }
 
 // Calculate wind components relative to aircraft track
-WindComponents calculate_wind(double track,       // Track angle (deg)
-                              double heading,     // Heading angle (deg)
-                              double wind_dir,    // Wind direction (deg)
+WindComponents calculate_wind(double track,       // Ground track (degrees true)
+                              double heading,     // Aircraft heading (degrees)
+                              double wind_dir,    // Wind direction FROM (degrees)
                               double wind_speed)  // Wind speed (knots)
 {
     WindComponents result;
@@ -104,7 +104,6 @@ void print_usage(const char* program_name)
     std::cerr << "  (Track 90°, Heading 85°, Wind from 270° at 15 knots)\n";
 }
 
-// AV Rule 113: Single exit point
 int main(int argc,
          char* argv[])
 {
@@ -113,11 +112,12 @@ int main(int argc,
         print_usage(argv[0]);
         return static_cast<int>(airv::Return_code::invalid_argc);
     }
-    // Parse arguments (JSF-compliant: no throwing parse functions)
-    double track;
-    double heading;
-    double wind_dir;
-    double wind_speed;
+
+    // Parse arguments
+    double track;       // Ground track (degrees true)
+    double heading;     // Aircraft heading (degrees)
+    double wind_dir;    // Wind direction FROM (degrees)
+    double wind_speed;  // Wind speed (knots)
 
     if (!airv::utils::parse_double(argv[1], track))
     {

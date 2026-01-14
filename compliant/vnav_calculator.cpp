@@ -41,11 +41,11 @@ struct VNAVData
 };
 
 // Calculate VNAV parameters
-VNAVData calculate_vnav(double current_alt_ft,
-                        double target_alt_ft,
-                        double distance_nm,
-                        double groundspeed_kts,
-                        double current_vs_fpm)
+VNAVData calculate_vnav(double current_alt_ft,   // Current altitude (feet)
+                        double target_alt_ft,    // Target altitude (feet)
+                        double distance_nm,      // Distance to constraint (nautical miles)
+                        double groundspeed_kts,  // Groundspeed (knots)
+                        double current_vs_fpm)   // Current vertical speed (feet per minute)
 {
     VNAVData result;
 
@@ -138,7 +138,6 @@ void print_usage(const char* program_name)
     std::cerr << "  (FL350 to 10000 ft, 100 NM, 450 kts GS, -1500 fpm)\n";
 }
 
-// AV Rule 113: Single exit point
 int main(int argc,
          char* argv[])
 {
@@ -149,11 +148,11 @@ int main(int argc,
     }
 
     // Parse arguments
-    double current_alt_ft;
-    double target_alt_ft;
-    double distance_nm;
-    double groundspeed_kts;
-    double current_vs_fpm;
+    double current_alt_ft;   // Current altitude (feet)
+    double target_alt_ft;    // Target altitude (feet)
+    double distance_nm;      // Distance to constraint (nautical miles)
+    double groundspeed_kts;  // Groundspeed (knots)
+    double current_vs_fpm;   // Current vertical speed (feet per minute)
 
     if (!airv::utils::parse_double(argv[1], current_alt_ft))
     {

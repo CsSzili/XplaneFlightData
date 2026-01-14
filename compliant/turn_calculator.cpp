@@ -135,7 +135,6 @@ void print_usage(const char* program_name)
     std::cerr << "  (250 kts TAS, 25 deg bank, 90 deg turn)\n";
 }
 
-// AV Rule 113: Single exit point
 int main(int argc,
          char* argv[])
 {
@@ -176,8 +175,7 @@ int main(int argc,
         return static_cast<int>(airv::Return_code::invalid_value);
     }
 
-    // Calculate and output results
-    airv::calc::TurnData turn = airv::calc::calculate_turn_performance(tas_kts, bank_deg, course_change_deg);
-    airv::calc::print_json(turn);
+    airv::calc::print_json(airv::calc::calculate_turn_performance(tas_kts, bank_deg, course_change_deg));
+
     return static_cast<int>(airv::Return_code::success);
 }

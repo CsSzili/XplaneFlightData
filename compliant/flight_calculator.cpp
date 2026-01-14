@@ -54,9 +54,6 @@ struct Vector2D
 };
 
 // Normalize angle to 0-360 range
-// Uses fmod() for deterministic execution time (no variable-iteration loops)
-// This is important for real-time and safety-critical systems where
-// predictable worst-case execution time (WCET) is required
 double normalize_angle(double angle)
 {
     double result = fmod(angle, units::angle_wrap);
@@ -183,12 +180,12 @@ struct EnvelopeMargins
     double corner_speed_kts;
 };
 
-EnvelopeMargins calculate_envelope(double bank_deg,
-                                   double ias_kts,
-                                   double mach,
-                                   double vso_kts,
-                                   double vne_kts,
-                                   double mmo)
+EnvelopeMargins calculate_envelope(double bank_deg,  // Bank angle (deg)
+                                   double ias_kts,   // Indicated airspeed (knots)
+                                   double mach,      // Mach number
+                                   double vso_kts,   // Stall speed in landing config (knots IAS)
+                                   double vne_kts,   // Velocity never exceed (knots IAS)
+                                   double mmo)       // Maximum operating Mach number
 {
     EnvelopeMargins result;
 
@@ -339,8 +336,7 @@ void print_json_results(const WindData& wind,
     std::cout << "}\n";
 }
 
-// A JSF-compliant ring buffer for managing sensor history.
-// AV Rule 206: All memory is contained within the struct and is fixed at compile time.
+// Ring buffer for managing sensor history.
 struct SensorHistoryBuffer
 {
     //  The pre-allocated, fixed-size buffer.
@@ -375,26 +371,44 @@ int main(int argc,
 {
     if (argc != 15)
     {
-        std::cerr << "Usage: " << argv[0] << " <tas_kts> <gs_kts> <heading> <track> "
-                  << "<ias_kts> <mach> <altitude_ft> <agl_ft> <vs_fpm> "
-                  << "<weight_kg> <bank_deg> <vso_kts> <vne_kts> <mmo>\n";
+        std::cerr << "Usage: " << argv[0]
+                  << " <tas_kts> <gs_kts> <heading> <track> <ias_kts> <mach> <altitude_ft> <agl_ft> <vs_fpm> "
+                     "<weight_kg> <bank_deg> <vso_kts> <vne_kts> <mmo>\n";
+        std::cerr << "Arguments:\n";
+        std::cerr << "  tas_kts    : True airspeed (knots)\n";
+        std::cerr << "  gs_kts     : Ground speed (knots)\n";
+        std::cerr << "  heading    : Heading (deg)\n";
+        std::cerr << "  track      : Ground track (deg)\n";
+        std::cerr << "  ias_kts    : Indicated airspeed (knots)\n";
+        std::cerr << "  mach       : n";
+        std::cerr << "  altitude_ft: Altitude (feet)\n";
+        std::cerr << "  agl_ft     : Above ground level (feet)\n";
+        std::cerr << "  vs_fpm     : Vertical speed (feet/min)\n";
+        std::cerr << "  weight_kg  : Aircraft weight (kg)\n";
+        std::cerr << "  bank_deg   : Bank angle (deg)\n";
+        std::cerr << "  vso_kts    : Stall speed in landing config (knots IAS)\n";
+        std::cerr << "  vne_kts    : Velocity never exceed (knots IAS)\n";
+        std::cerr << "  mmo        : Maximum operating Mach number\n";
+        std::cerr << "  course_change_deg: Course change (degrees)\n\n";
+        std::cerr << "Example:\n";
+        std::cerr << "  " << argv[0] << " 250 245 90 95 220 0.65 35000 35000 -500 75000 5 120 250 0.82\n";
         return static_cast<int>(airv::Return_code::invalid_argc);
     }
 
-    double tas_kts;
-    double gs_kts;
-    double heading;
-    double track;
-    double ias_kts;
-    double mach;
-    double altitude_ft;
-    double agl_ft;
-    double vs_fpm;
-    double weight_kg;
-    double bank_deg;
-    double vso_kts;
-    double vne_kts;
-    double mmo;
+    double tas_kts;      // True airspeed (knots)
+    double gs_kts;       // Ground speed (knots)
+    double heading;      // Heading (deg)
+    double track;        // Ground track (deg)
+    double ias_kts;      // Indicated airspeed (knots)
+    double mach;         // Mach number
+    double altitude_ft;  // Altitude (feet)
+    double agl_ft;       // Above ground level (feet)
+    double vs_fpm;       // Vertical speed (feet/min)
+    double weight_kg;    // Aircraft weight (kg)
+    double bank_deg;     // Bank angle (deg)
+    double vso_kts;      // Stall speed in landing config (knots IAS)
+    double vne_kts;      // Velocity never exceed (knots IAS)
+    double mmo;          // Maximum operating Mach number
 
     //? Why are there no custom messages for the arguments like in density altitude calculator?
     //? No simulated error?
@@ -418,6 +432,7 @@ int main(int argc,
         ias_buffer.add_reading(new_reading);
     }
 
+    // Calculate and output results
     airv::calc::WindData wind = airv::calc::calculate_wind_vector(
         tas_kts, gs_kts, heading, track, ias_buffer.get_data_ptr(), ias_buffer.get_size());
     airv::calc::EnvelopeMargins envelope =

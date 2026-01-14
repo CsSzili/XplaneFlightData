@@ -45,15 +45,15 @@ struct DensityAltitudeData
 };
 
 // Calculate ISA temperature at given pressure altitude
-double isa_temperature_c(double pressure_altitude_ft)
+double isa_temperature_c(double pressure_altitude_ft)  // Pressure altitude (feet)
 {
     return sea_level_temp_c - (temp_lapse_rate * pressure_altitude_ft);
 }
 
 // Calculate density altitude using exact formula
 // DA = PA + [120 * (OAT - ISA)]
-double calculate_density_altitude(double pressure_altitude_ft,
-                                  double oat_celsius)
+double calculate_density_altitude(double pressure_altitude_ft,  // Pressure altitude (feet)
+                                  double oat_celsius)           // Outside air temperature (Celsius)
 {
     // ISA temperature at pressure altitude
     double isa_temp = isa_temperature_c(pressure_altitude_ft);
@@ -97,10 +97,10 @@ double calculate_eas(double tas_kts,
 }
 
 // Calculate complete density altitude data
-DensityAltitudeData calculate_density_altitude_data(double pressure_altitude_ft,
-                                                    double oat_celsius,
-                                                    double ias_kts,
-                                                    double tas_kts)
+DensityAltitudeData calculate_density_altitude_data(double pressure_altitude_ft,  // Pressure altitude (feet)
+                                                    double oat_celsius,           // Outside air temperature (Celsius)
+                                                    double ias_kts,               // Indicated airspeed (knots)
+                                                    double tas_kts)               // True airspeed (knots)
 {
     DensityAltitudeData result;
 
@@ -170,10 +170,10 @@ int main(int argc,
         return static_cast<int>(airv::Return_code::invalid_argc);
     }
 
-    double pressure_altitude_ft;
-    double oat_celsius;
-    double ias_kts;
-    double tas_kts;
+    double pressure_altitude_ft;  // Pressure altitude (feet)
+    double oat_celsius;           // Outside air temperature (Celsius)
+    double ias_kts;               // Indicated airspeed (knots)
+    double tas_kts;               // True airspeed (knots)
     int32_t force_error = 0;
 
     // Parse optional force_error flag
