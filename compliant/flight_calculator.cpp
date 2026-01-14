@@ -15,7 +15,9 @@
 #include <iomanip>
 #include <iostream>
 
-namespace airv::calc
+namespace airv
+{
+namespace calc
 {
 
 // Fixed-size array limit
@@ -364,7 +366,8 @@ struct SensorHistoryBuffer
     int32_t get_size() const { return current_size; }
 };
 
-}  // namespace airv::calc
+}  // namespace calc
+}  // namespace airv
 
 int main(int argc,
          char* argv[])

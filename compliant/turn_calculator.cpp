@@ -14,7 +14,9 @@
 #include <iomanip>
 #include <iostream>
 
-namespace airv::calc
+namespace airv
+{
+namespace calc
 {
 
 // Mathematical constants
@@ -121,7 +123,8 @@ void print_json(const TurnData& turn)
     std::cout << "}\n";
 }
 
-}  // namespace airv::calc
+}  // namespace calc
+}  // namespace airv
 
 void print_usage(const char* program_name)
 {

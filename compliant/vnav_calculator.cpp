@@ -13,9 +13,10 @@
 #include <iomanip>
 #include <iostream>
 
-namespace airv::calc
+namespace airv
 {
-
+namespace calc
+{
 // Mathematical constants
 constexpr double three_deg_rad = 3.0 * units::deg_to_rad;
 
@@ -121,7 +122,8 @@ void print_json(const VNAVData& vnav)
     std::cout << "}\n";
 }
 
-}  // namespace airv::calc
+}  // namespace calc
+}  // namespace airv
 
 void print_usage(const char* program_name)
 {

@@ -15,7 +15,9 @@
 #include <iomanip>
 #include <iostream>
 
-namespace airv::calc
+namespace airv
+{
+namespace calc
 {
 
 constexpr double sea_level_temp_c           = 15.0;
@@ -143,7 +145,8 @@ void print_json(const DensityAltitudeData& da)
               << "}\n";
 }
 
-}  // namespace airv::calc
+}  // namespace calc
+}  // namespace airv
 
 void print_usage(const char* program_name)
 {

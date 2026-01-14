@@ -4,7 +4,7 @@
 # --------------------------------------------------
 CXX = g++
 # JSF-compliant flags: strict warnings, optimization, C++20
-CXXFLAGS_COMPLIANT = -std=c++20 -O3 -Wall -Wextra -Wpedantic -Werror=return-type -Icompliant
+CXXFLAGS_COMPLIANT = -std=c++11 -O3 -Wall -Wextra -Wpedantic -Werror -Icompliant -fno-exceptions -fno-rtti
 # Non-compliant flags: standard C++20, less strict
 CXXFLAGS_NON_COMPLIANT = -std=c++20 -O3 -Wall -Wextra
 # Default to compliant version
